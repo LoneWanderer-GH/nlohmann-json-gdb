@@ -1,5 +1,4 @@
 import gdb
-
 import platform
 import sys
 import traceback
@@ -54,14 +53,14 @@ std_rb_tree_size_type = gdb.lookup_type("std::size_t").pointer()
 
 """"""
 enum_literals_namespace = ["nlohmann::detail::value_t::null",
-                            "nlohmann::detail::value_t::object",
-                            "nlohmann::detail::value_t::array",
-                            "nlohmann::detail::value_t::string",
-                            "nlohmann::detail::value_t::boolean",
-                            "nlohmann::detail::value_t::number_integer",
-                            "nlohmann::detail::value_t::number_unsigned",
-                            "nlohmann::detail::value_t::number_float",
-                            "nlohmann::detail::value_t::discarded"]
+                           "nlohmann::detail::value_t::object",
+                           "nlohmann::detail::value_t::array",
+                           "nlohmann::detail::value_t::string",
+                           "nlohmann::detail::value_t::boolean",
+                           "nlohmann::detail::value_t::number_integer",
+                           "nlohmann::detail::value_t::number_unsigned",
+                           "nlohmann::detail::value_t::number_float",
+                           "nlohmann::detail::value_t::discarded"]
 
 enum_literal_namespace_to_literal = dict([(e, e.split("::")[-1]) for e in enum_literals_namespace])
 
@@ -96,15 +95,15 @@ class LohmannJSONPrinter(object):
         self.field_type_short = None
         self.indent_level = indent_level
 
-        self.function_map = {"nlohmann::detail::value_t::null": self.parse_as_leaf,
-                            "nlohmann::detail::value_t::object": self.parse_as_object,
-                            "nlohmann::detail::value_t::array": self.parse_as_array,
-                            "nlohmann::detail::value_t::string": self.parse_as_str,
-                            "nlohmann::detail::value_t::boolean": self.parse_as_leaf,
-                            "nlohmann::detail::value_t::number_integer": self.parse_as_leaf,
-                            "nlohmann::detail::value_t::number_unsigned": self.parse_as_leaf,
-                            "nlohmann::detail::value_t::number_float": self.parse_as_leaf,
-                            "nlohmann::detail::value_t::discarded": self.parse_as_leaf}
+        self.function_map = {"nlohmann::detail::value_t::null"           : self.parse_as_leaf,
+                             "nlohmann::detail::value_t::object"         : self.parse_as_object,
+                             "nlohmann::detail::value_t::array"          : self.parse_as_array,
+                             "nlohmann::detail::value_t::string"         : self.parse_as_str,
+                             "nlohmann::detail::value_t::boolean"        : self.parse_as_leaf,
+                             "nlohmann::detail::value_t::number_integer" : self.parse_as_leaf,
+                             "nlohmann::detail::value_t::number_unsigned": self.parse_as_leaf,
+                             "nlohmann::detail::value_t::number_float"   : self.parse_as_leaf,
+                             "nlohmann::detail::value_t::discarded"      : self.parse_as_leaf}
 
     def parse_as_object(self):
         assert (self.field_type_short == "object")
@@ -123,36 +122,12 @@ class LohmannJSONPrinter(object):
         #   Modified to work with g++ 4.3 by Anders Elton
         #   Also added _member functions, that instead of printing the entire class in map, prints a member.
 
-        # node = o["_M_t"]["_M_impl"]["_M_header"]["_M_left"]
-        # # end = o["_M_t"]["_M_impl"]["_M_header"]
-        # tree_size = o["_M_t"]["_M_impl"]["_M_node_count"]
-
-        # print("")
-        # print("Object address                       : {} (type {}, referenced value address {})".format(o.address, o.type, o.referenced_value().address))
-        # print("    - _M_t                           : {}".format(o["_M_t"].address))                         # same address
-        # print("    - _M_t._M_impl                   : {}".format(o["_M_t"]["_M_impl"].address))              # same address
-        # print("    - _M_t._M_impl._M_header         : {}".format(o["_M_t"]["_M_impl"]["_M_header"].address)) # previous + 0x08 (8)
-        # print("    - _M_t._M_impl._M_header._M_left : {} (type {})".format(node.address, node.type))                              # previous + 0x10 (16)
-        # print("    - _M_t._M_impl._M_node_count     : {} (type {})".format(tree_size.address, tree_size.type))                         # previous + 0x10 (16)
-
-        # in memory alternatives:
-
         _M_t = std_stl_item_to_int_address(o.referenced_value().address)
-        _M_t_M_impl_M_header_M_left = _M_t + 8 + 16
-        _M_t_M_impl_M_node_count    = _M_t + 8 + 16 + 16
-
-        # print("_M_t                                 : {}".format(hex(_M_t)))
-        # print("_M_t_M_impl_M_header_M_left          : {}".format(hex(_M_t_M_impl_M_header_M_left)))
-        # print("_M_t_M_impl_M_node_count             : {}".format(hex(_M_t_M_impl_M_node_count)))
-        # print("")
+        _M_t_M_impl_M_header_M_left = _M_t + 8 + MAGIC_STD_VECTOR_OFFSET
+        _M_t_M_impl_M_node_count = _M_t + 8 + MAGIC_STD_VECTOR_OFFSET + MAGIC_STD_VECTOR_OFFSET
 
         node = gdb.Value(long(_M_t_M_impl_M_header_M_left)).cast(std_rb_tree_node_type).referenced_value()
         tree_size = gdb.Value(long(_M_t_M_impl_M_node_count)).cast(std_rb_tree_size_type).referenced_value()
-        # print("Comparing memory interpretations")
-        # print("{} =? {} (node type = {})".format(node, node1, node.type))
-        # print("{} =? {} (size type = {})".format(tree_size, tree_size1, tree_size.type))
-        # print("")
-        # print("")
 
         i = 0
 
@@ -166,11 +141,8 @@ class LohmannJSONPrinter(object):
                 # may be platform dependant and should be taken with caution
                 key_address = std_stl_item_to_int_address(node) + MAGIC_OFFSET_STD_MAP
 
-                # print(key_object['_M_dataplus']['_M_p'])
-
                 k_str = parse_std_str_from_hexa_address(hex(key_address))
 
-                # offset = MAGIC_OFFSET_STD_MAP
                 value_address = key_address + MAGIC_OFFSET_STD_MAP
                 value_object = gdb.Value(long(value_address)).cast(nlohmann_json_type)
 
@@ -307,26 +279,3 @@ def build_pretty_printer():
     return pp
 
 # executed at autoload gdb.printing.register_pretty_printer(gdb.current_objfile(),build_pretty_printer())
-
-
-# simple_leaf_types = ["nlohmann::detail::value_t::null",
-#                      # "nlohmann::detail::value_t::string",
-#                      "nlohmann::detail::value_t::boolean",
-#                      "nlohmann::detail::value_t::number_integer",
-#                      "nlohmann::detail::value_t::number_unsigned",
-#                      "nlohmann::detail::value_t::number_float",
-#                      "nlohmann::detail::value_t::discarded"]
-
-
-# key = r"std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >"
-# value = nlohmann_json_tag
-
-# left = "std::string"
-# left_2 = "string"
-# right = nlohmann_json_tag #"nlohmann::json"
-# right_p = "nlohmann::json*"
-
-# basic_json_type_pointer = gdb.lookup_type("nlohmann::json").pointer()
-# nlohmann_json_internal_map_pointer = gdb.lookup_type(nlohmann_json_internal_map).pointer()
-
-# right_type = gdb.lookup_type(right).pointer()
