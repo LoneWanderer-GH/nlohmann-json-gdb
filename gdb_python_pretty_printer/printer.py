@@ -218,9 +218,9 @@ class LohmannJSONPrinter(object):
 
     def parse_as_array(self):
         assert (self.field_type_short == "array")
-        o = self.val["m_value"][self.field_type_short]
-        start = o["_M_impl"]["_M_start"]
-        size = o["_M_impl"]["_M_finish"] - start
+        o = self.val["m_value"][self.field_type_short]  ## todo finish access by offset ?
+        start = o["_M_impl"]["_M_start"] ## todo finish access by offset ?
+        size = o["_M_impl"]["_M_finish"] - start  ## todo finish access by offset ?
         # capacity = o["_M_impl"]["_M_end_of_storage"] - start
         # size_max = size - 1
         i = 0
@@ -265,7 +265,7 @@ class LohmannJSONPrinter(object):
 
     def to_string(self):
         try:
-            self.field_type_full_namespace = self.val["m_type"]
+            self.field_type_full_namespace = self.val["m_type"] ## todo finish access by offset ?
             str_val = str(self.field_type_full_namespace)
             if not str_val in enum_literal_namespace_to_literal:
                 return "TIMMY !"
@@ -311,4 +311,6 @@ def build_pretty_printer():
     pp.add_printer(nlohmann_json_type_namespace, "^{}$".format(nlohmann_json_type_namespace), LohmannJSONPrinter)
     return pp
 
-# executed at autoload gdb.printing.register_pretty_printer(gdb.current_objfile(),build_pretty_printer())
+# TO BE executed at autoload
+# the following line is currently done by the gdb script
+# gdb.printing.register_pretty_printer(gdb.current_objfile(),build_pretty_printer())
