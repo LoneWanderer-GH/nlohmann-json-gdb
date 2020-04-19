@@ -1,3 +1,32 @@
+#
+# Licensed under the MIT License <http://opensource.org/licenses/MIT>.
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2020 LoneWanderer-GH https://github.com/LoneWanderer-GH
+#
+# Permission is hereby  granted, free of charge, to any  person obtaining a copy
+# of this software and associated  documentation files (the "Software"), to deal
+# in the Software  without restriction, including without  limitation the rights
+# to  use, copy,  modify, merge,  publish, distribute,  sublicense, and/or  sell
+# copies  of  the Software,  and  to  permit persons  to  whom  the Software  is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE  IS PROVIDED "AS  IS", WITHOUT WARRANTY  OF ANY KIND,  EXPRESS OR
+# IMPLIED,  INCLUDING BUT  NOT  LIMITED TO  THE  WARRANTIES OF  MERCHANTABILITY,
+# FITNESS FOR  A PARTICULAR PURPOSE AND  NONINFRINGEMENT. IN NO EVENT  SHALL THE
+# AUTHORS  OR COPYRIGHT  HOLDERS  BE  LIABLE FOR  ANY  CLAIM,  DAMAGES OR  OTHER
+# LIABILITY, WHETHER IN AN ACTION OF  CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
+# disclaimer:
+# I'm not a layern and I like to give people credit as much as I
+# like them given me. I was inspired or adapted some code pieces her and there
+# the source link is given in comments.
+
 import gdb
 import platform
 import sys
@@ -10,6 +39,7 @@ LEFT_ARROW = "<-"  # "\u2190 "
 RIGHT_ARROW = "->"  # " \u2192 "
 DOWN_ARROW = "|"  # "\u21b3"
 
+# the stirngs were obtained with gdb
 nlohmann_json_type_namespace = \
     r"nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, " \
     r"std::allocator<char> >, bool, long long, unsigned long long, double, std::allocator, nlohmann::adl_serializer>"
@@ -27,7 +57,7 @@ nlohmann_json_internal_map_type = \
 
 # STD black magic
 MAGIC_STD_VECTOR_OFFSET = 16  # win 10 x64 values
-MAGIC_OFFSET_STD_MAP = 32  # win 10 x64 values
+MAGIC_OFFSET_STD_MAP = 32     # win 10 x64 values
 
 """"""
 # GDB black magic
@@ -37,6 +67,7 @@ std_rb_tree_node_type = gdb.lookup_type("std::_Rb_tree_node_base::_Base_ptr").po
 std_rb_tree_size_type = gdb.lookup_type("std::size_t").pointer()
 
 """"""
+# from source code. copy here for readability/understanding
 # nlohmann_json reminder
 # enum class value_t : std::uint8_t
 # {
@@ -81,11 +112,13 @@ class LohmannJSONPrinter(object):
     BEWARE :
      - Contains shitty string formatting (defining lists and playing with ",".join(...) could be better; ident management is stoneage style)
      - Parsing barely tested only with a live inferior process.
-     - It could possibly work with a core dump + debug symbols. TODO: read that stuff
-     https://doc.ecoscentric.com/gnutools/doc/gdb/Core-File-Generation.html
+     - It could possibly work with a core dump + debug symbols.
+            TODO: read that stuff https://doc.ecoscentric.com/gnutools/doc/gdb/Core-File-Generation.html
      - Not idea what happens with no symbols available, lots of fields are retrieved by name and should be changed to offsets if possible
-     - NO LIB VERSION MANAGEMENT. TODO: determine if there are serious variants in nlohmann data structures that would justify working with strucutres
-     - PLATFORM DEPENDANT TODO: remove the black magic offsets or handle them in a nicer way
+     - NO LIB VERSION MANAGEMENT.
+            TODO: determine if there are serious variants in nlohmann data structures that would justify working with strucutres
+     - PLATFORM DEPENDANT
+            TODO: remove the black magic offsets or handle them in a nicer way (get the exact types sizes with some gdb commands)
     NB: If you are python-kaizer-style-guru, please consider helping or teaching how to improve all that mess
     """
 
@@ -154,14 +187,14 @@ class LohmannJSONPrinter(object):
                 s = s + (" " * (self.indent_level * INDENT)) + k_v_str + end_of_line  # ",\n"
 
                 if std_stl_item_to_int_address(node["_M_right"]) != 0:
-                    node = node["_M_right"]
+                    node = node["_M_right"] ## todo finish access by offset ?
                     while std_stl_item_to_int_address(node["_M_left"]) != 0:
-                        node = node["_M_left"]
+                        node = node["_M_left"] ## todo finish access by offset ?
                 else:
-                    tmp_node = node["_M_parent"]
+                    tmp_node = node["_M_parent"] ## todo finish access by offset ?
                     while std_stl_item_to_int_address(node) == std_stl_item_to_int_address(tmp_node["_M_right"]):
                         node = tmp_node
-                        tmp_node = tmp_node["_M_parent"]
+                        tmp_node = tmp_node["_M_parent"] ## todo finish access by offset ?
 
                     if std_stl_item_to_int_address(node["_M_right"]) != std_stl_item_to_int_address(tmp_node):
                         node = tmp_node
