@@ -2,26 +2,14 @@
 
 Provides gdb script and python gdb script to pretty print a  nlohmann / json  (https://github.com/nlohmann/json)
 
-# History /Reasons this exists
+## Content
 
-In March 2019, I was stuck with the lack of nlohmann json debug utilities. I could not find any support to print what was in memory
-I ended up with a stack overflow post with [what I found to be revelant][1] for that matter. _If something was indeed broadly available, weel, I'm sorry_
+ - [x] a [sample c++ project](cpp_test_project). To be built using terminal command:
+  `gprbuild -P debug_printer.gpr`. I used it on Windows 10 x64 with [GNAT CE 2019][2]
+ - [x] the *[gdb command](gdb_script/simple_gdb_method.gdb)* : it uses the live process under debug to call `dump()`. It implies that the executable and memory are not corrupted, and variables not optimized out
+ - [x] the *[python gdb pretty printer](gdb_python_pretty_printer)* : here, we do not rely on the existing dump() method but we explore memory to do it ourselves
 
-In 2020 github issue was opened with the same intent here and relies basically the same initial solution I used: https://github.com/nlohmann/json/issues/1952
-
-_I'm not claiming any right or precedence over the official nlohmann / json issue or the method to perform the print using dump(). I think we all did the same thing by serendipity, and I bet I am not the first one  to have taken the .dump() call approach. All in all, if everyone can ~~work~~ debug better, that all that matters to me_
-
-Plus, I was interested in playing around with GDB/memory/python, thats why I took some time to treat this matter.
-I ended up with the code here.
-
-# What is provided here
-
- - [x] a sample GPR project file + sources to be built using gprbuild
- - [x] the *gdb script* trick to use the inferior process to perform the json dump for us. It implies that the executable and memory are not corrupted, and variables not optimized out
-   (see"gdb_script\simple_gdb_method.gdb")
- - [x] the *python gdb pretty printer code* to walk inside memory (of a live inferior process) to perform the same json dump. Here, we do not rely on the existing dump() method but we explore memory to do it ourselves (see "gdb_python_pretty_printer\load_pretty_printer.gdb" and "gdb_python_pretty_printer\printer.py")
-
- _the gdb defined command and the gdb pretty printer should probably be 2 mutually exclusive methods_
+## Compatibility
 
  It is confirmed working on w10 x64 with:
 
@@ -31,19 +19,19 @@ I ended up with the code here.
 
  Other plaforms should work too, but I can't test that.
 
- ## Load a GDB script
+ ## Usage
+ ### How to load a GDB script
 
  in your gdb console:
  ```
  (gdb) source some_file
  ```
 
- ## GDB pretty printer usage
+ ### GDB pretty printer usage (the Python printer)
 
- The GDB Pretty printer is written in Python. Once loaded, you should not notice anything python related in your gdb usage.
- See here to load the pretty printer : https://github.com/LoneWanderer-GH/nlohmann-json-gdb/blob/master/.gdbinit
+ The GDB Pretty printer is [written in Python](gdb_python_pretty_printer/printer.py) which is loaded with a [gdb script](gdb_python_pretty_printer/load_pretty_printer.gdb)
 
-once loaded, its just a regular GDB variable print !
+ Then, a simple gdb command does the trick:
 
  ```
 (gdb) p foo
@@ -56,9 +44,9 @@ once loaded, its just a regular GDB variable print !
 }
 ```
 
- ## GDB script usage
+ ### GDB script usage (the gdb command)
 
-Here we use a kind of GDB macro defined in a gdb script file https://github.com/LoneWanderer-GH/nlohmann-json-gdb/blob/master/.gdbinit
+Here we use a kind of GDB macro defined in a [gdb script file](gdb_script/simple_gdb_method.gdb)
 
  ```
 (gdb) pjson foo
@@ -71,17 +59,28 @@ Here we use a kind of GDB macro defined in a gdb script file https://github.com/
 }
 ```
 
-## possible improvements
+### Remarks
+
+Floating point numbers may appear differently depending on the method used. This is due to differences in floating-to-string from fdb and json c++.
+For more confidence, we should modify the python pretty printer to provide the exact hexadecimal memory value + the decimal one.
+
+## Possible improvements
  - [ ] the python gdb pretty printer core dump management is not (yet ?) done (i.e. core dump means no inferior process to call dump() in any way, and possibly less/no (debug) symbols to rely on)
  - [ ] printer can be customised further to print the 0x addresses, I chose not to since the whole point for me was NOT to explore them in gdb. You would have to add few python `print` here and there
 
- # Another approach I know of
+## Known limitations
+
+Not much.
+
+ - Linux over windows exe build : `gprbuild` command on Ubuntu-windows/Debian-windows may not work correctly, so a legit Linux environment may be needed if you want to play with this on Linux.
+
+ ## Another approach I know of
  _from a guru of my workplace_
   - simply define a single function in the program to perform the dump of a json variable. This is almost exactly similar to the gdb inferior dump() call
 
  # Examples / Tests
 
- see https://github.com/LoneWanderer-GH/nlohmann-json-gdb/blob/master/src/main.cpp for some basic C++ JSON declarations.
+ see [main.cpp](cpp_test_project/src/main.cpp) for some basic C++ JSON declarations.
 
  example:
  ```// C++ code
@@ -139,23 +138,42 @@ foo["array"] = { 1, 0, 2 };
 }
  ```
 
+# History
+
+ - In March 2019, I was stuck with the lack of nlohmann json debug utilities. I could not find any support to print what the json was during a debug session. I ended up with a stack overflow post with [what I found to be revelant][1] for that matter. In addition, I was interested in playing around with GDB/memory/python, thats why I took some time to treat this matter. I ended up with the code here.
+ - In 2020 a Github issue was opened with the same intent here and relies basically on the same initial solution I used: https://github.com/nlohmann/json/issues/1952
+
+_I'm not claiming any right or precedence over the official nlohmann / json issue or the method to perform the print using dump(). I think we all did the same thing by serendipity, and I bet I am not the first one  to have taken the .dump() call approach. All in all, if everyone can ~~work~~ debug better, that all that matters to me_
+
+
 # LICENSES
 
+My work is under following license
+> Licensed under the MIT License <http://opensource.org/licenses/MIT>.
+> SPDX-License-Identifier: MIT
+>
+> Copyright (c) 2020 LoneWanderer-GH https://github.com/LoneWanderer-GH
+>
+>Permission is hereby  granted, free of charge, to any  person obtaining a copy of this software and associated  documentation files (the "Software"), to deal in the Software  without restriction, including without  limitation the rights to  use, copy,  modify, merge,  publish, distribute,  sublicense, and/or  sell copies  of  the Software,  and  to  permit persons  to  whom  the Software  is furnished to do so, subject to the following conditions:
+> 
+> The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+>
+> THE SOFTWARE  IS PROVIDED "AS  IS", WITHOUT WARRANTY  OF ANY KIND,  EXPRESS OR IMPLIED,  INCLUDING BUT  NOT  LIMITED TO  THE  WARRANTIES OF  MERCHANTABILITY, FITNESS FOR  A PARTICULAR PURPOSE AND  NONINFRINGEMENT. IN NO EVENT  SHALL THE AUTHORS  OR COPYRIGHT  HOLDERS  BE  LIABLE FOR  ANY  CLAIM,  DAMAGES OR  OTHER LIABILITY, WHETHER IN AN ACTION OF  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-## nlohmann JSON for Modern C++
+## Some files in this repo are not mine and under other licenses
+### nlohmann JSON for Modern C++
 
 as per the file content:
 
->     __ _____ _____ _____
->  __|  |   __|     |   | |  JSON for Modern C++
-> |  |  |__   |  |  | | | |  version 3.7.3
-> |_____|_____|_____|_|___|  https://github.com/nlohmann/json
+> JSON for Modern C++
+> version 3.7.3
+> https://github.com/nlohmann/json
 >
-> Licensed under the MIT License <http://opensource.org/licenses/MIT>.
+> Licensed under the MIT License <http://opensource.org/licenses/MIT>
 > SPDX-License-Identifier: MIT
-> Copyright (c) 2013-2019 Niels Lohmann <http://nlohmann.me>.
+> Copyright (c) 2013-2019 Niels Lohmann <http://nlohmann.me>
 
-## STL GDB evaluators/views/utilities - 1.03
+### STL GDB evaluators/views/utilities - 1.03
 
 as per the file content:
 
@@ -169,3 +187,4 @@ as per the file content:
 >   Also added _member functions, that instead of printing the entire class in map, prints a member.
 
 [1]: https://stackoverflow.com/q/55316620/7237062
+[2]: https://www.adacore.com/community
