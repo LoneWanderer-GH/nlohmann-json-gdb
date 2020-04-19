@@ -1,5 +1,2 @@
-
-include/.#json.hpp#
-obj/*
-tmp.txt
-src/main.c
+*/exe/**
+*/obj/**
