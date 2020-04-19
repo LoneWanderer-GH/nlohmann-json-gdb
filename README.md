@@ -1,8 +1,8 @@
 # A simplistic nlohmann-json-gdb pretty printer
 
-Provides gdb script and python gdb script to pretty print a  nlohmann / json  (https://github.com/nlohmann/json)
+Provides gdb script and python gdb script to pretty print a  [nlohmann / json][3]
 
-**Table*
+**Table of contents**
  
  1. [Prerequisites](#1-Prerequisites)
  2. [Installing](#2-Installing)
@@ -17,7 +17,7 @@ Provides gdb script and python gdb script to pretty print a  nlohmann / json  (h
 # 1. Prerequisites
 
  - *GDB 8.3* debugger installed, ready to use. Some GDB commands knowledge might be useful for your debug session to be successful ;)
- -an executable to debug that uses the [JSON lib 3.7.3] (https://github.com/nlohmann/json).
+ -an executable to debug that uses the [JSON lib 3.7.3][3]
 
 ## Optional
  - a [GNAT CE 2019][2] install to play with the provided sample test project
@@ -178,6 +178,16 @@ _I'm not claiming any right or precedence over the official nlohmann / json issu
 
 # 9. Acknowledgments / LICENSES
 
+## ACKNOWLEDGMENTS
+
+ - The [GDB documentation][4] was particularly useful, in particular the [Python part][5].
+ - The red black tree traversal and STL exploration in python is directly inspired from the STL gdb scripts.
+
+A few other links were useful and are linked in the python source.
+ - The python exceptions printing is [inspired from GEF][6]
+ - The `std::string` print in python gdb is inspired from [this stackoverflow post][7]
+
+## LICENSE
 My work is under following license
 > Licensed under the MIT License <http://opensource.org/licenses/MIT>.
 > SPDX-License-Identifier: MIT
@@ -218,3 +228,8 @@ as per the file content:
 
 [1]: https://stackoverflow.com/q/55316620/7237062
 [2]: https://www.adacore.com/community
+[3]: https://github.com/nlohmann/json
+[4]: https://sourceware.org/gdb/current/onlinedocs/gdb/index.html
+[5]: https://sourceware.org/gdb/current/onlinedocs/gdb/Python-API.html#Python-API
+[6]: https://github.com/hugsy/gef/blob/dev/gef.py
+[7]: https://stackoverflow.com/questions/6776961/how-to-inspect-stdstring-in-gdb-with-no-source-code
