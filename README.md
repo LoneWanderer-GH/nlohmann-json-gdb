@@ -4,15 +4,15 @@ Provides gdb script and python gdb script to pretty print a  nlohmann / json  (h
 
 **Table*
  
- 1. [Prerequisites](#1.Prerequisites)
- 2. [Installing](#Installing)
- 3. [Content](#Content)
- 4. [Usage](#Usage)
- 5. [Possible improvements](#Possible-improvements)
- 6. [Known limitations](#Known-limitations)
- 7. [Examples / Tests](#Examples / Tests)  
- 8. [History](#History)
- 9. [Acknowledgments / LICENSES](#Acknowledgments-/-LICENSES)
+ 1. [Prerequisites](#1-Prerequisites)
+ 2. [Installing](#2-Installing)
+ 3. [Content](#3-Content)
+ 4. [Usage](#4-Usage)
+ 5. [Possible improvements](#5-Possible-improvements)
+ 6. [Known limitations](#6-Known-limitations)
+ 7. [Examples / Tests](#7-Examples--Tests)  
+ 8. [History](#8-History)
+ 9. [Acknowledgments / LICENSES](#9-Acknowledgments--LICENSES)
 
 # 1. Prerequisites
 
