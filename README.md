@@ -16,8 +16,8 @@ Provides gdb script and python gdb script to pretty print a  [nlohmann / json][3
 
 # 1. Prerequisites
 
- - *GDB 8.3* debugger installed, ready to use. Some GDB commands knowledge might be useful for your debug session to be successful ;)
- -an executable to debug that uses the [JSON lib 3.7.3][3]
+ - *GDB 8.3* debugger installed, ready to use. _Some [GDB commands knowledge][4] might be useful for your debug session to be successful ;)_
+ - an executable to debug that uses the [JSON lib 3.7.3][3]
 
 ## Optional
  - a [GNAT CE 2019][2] install to play with the provided sample test project
@@ -25,16 +25,9 @@ Provides gdb script and python gdb script to pretty print a  [nlohmann / json][3
 
 ## Compatibility
  
- For the GDB command, tt should work with other GDB versions that support commands and printf.
+ For the GDB command, it should work with other GDB versions that support commands and printf.
 
-For the GDB Python pretty printer, it should work with any GDB version that supports python (provided no gdb api change, otherwise python code will be broken). Be aware that the python code relies on some JSON lib types definition, so JSON lib and python pretty printer code should evolve together.
-
-<details>
-It is confirmed to be working on w10 x64 with:
- - https://github.com/nlohmann/json version 3.7.3
- - GNU gdb (GDB) 8.3 for GNAT Community 2019 [rev=gdb-8.3-ref-194-g3fc1095]
- - c++ project built with GPRBUILD/ GNAT Community 2019 (20190517) (x86_64-pc-mingw32)
-</details>
+For the GDB Python pretty printer, it should work with any GDB version that supports python (provided no gdb api change, otherwise python code will be broken). Be aware that the python code relies on some [JSON lib types definition][3], so JSON lib and python pretty printer code should be matching.
 
 # 2. Installing
 
@@ -90,13 +83,14 @@ Here we use a kind of GDB macro defined in a [gdb script file](gdb_script/simple
 
 ## Remarks
 
-Floating point numbers may appear differently depending on the method used. This is due to differences in floating-to-string from fdb and json c++.
-For more confidence, we should modify the python pretty printer to provide the exact hexadecimal memory value + the decimal one.
+Floating point numbers may appear differently depending on the method used. This is due to differences in float-to-string from [GDB][4] and [json c++][3].
+For more confidence, we could modify the python pretty printer to provide the exact hexadecimal memory value + the decimal one.
 
 # 5. Possible improvements
  - [ ] the python gdb pretty printer core dump management is not (yet ?) done (i.e. core dump means no inferior process to call dump() in any way, and possibly less/no (debug) symbols to rely on)
  - [ ] printer can be customised further to print the 0x addresses, I chose not to since the whole point for me was NOT to explore them in gdb. You would have to add few python `print` here and there
-
+ - [ ] add the hexa value for floating point numbers, or for all numerical values
+ 
 # 6. Known limitations
 
 Not much.
