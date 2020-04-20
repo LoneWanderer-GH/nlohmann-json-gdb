@@ -37,8 +37,8 @@ See [Content](#Content) and [Usage](#Usage) sections below for more details.
 
 # 3. Content
 
- - [x] a [sample c++ project](cpp_test_project). To be built using terminal command:
-  `gprbuild -P debug_printer.gpr`. I used it on Windows 10 x64 with [GNAT CE 2019][2]
+ - [x] a [sample c++ project](cpp_test_project), see [7. Examples / Tests](#7-Examples--Tests) for further details
+  
  - [x] the *[gdb command](gdb_script/simple_gdb_method.gdb)* : it uses the live process under debug to call `dump()`. It implies that the executable and memory are not corrupted, and variables not optimized out
  - [x] the *[python gdb pretty printer](gdb_python_pretty_printer)* : here, we do not rely on the existing dump() method but we explore memory to do it ourselves
 
@@ -99,6 +99,10 @@ Not much.
  - Linux over windows exe build : `gprbuild` command on Ubuntu-windows/Debian-windows may not work correctly, so a legit Linux environment may be needed if you want to play with this on Linux.
 
  # 7. Examples / Tests
+
+The C++ project [debug_printer.gpr](cpp_test_project/debug_printer.gpr) can be built with the following command
+`gprbuild -p -P debug_printer.gpr`
+(`-p`creates the obj/exe dirs if missing)
 
  see [main.cpp](cpp_test_project/src/main.cpp) for some basic C++ JSON declarations.
 
