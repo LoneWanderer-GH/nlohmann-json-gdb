@@ -13,6 +13,7 @@ Provides gdb script and python gdb script to pretty print a  [nlohmann / json][3
  7. [Examples / Tests](#7-Examples--Tests)  
  8. [History](#8-History)
  9. [Acknowledgments / LICENSES](#9-Acknowledgments--LICENSES)
+ 10.[Links concerning STL and GDB](#10-Links)
 
 # 1. Prerequisites
 
@@ -219,6 +220,20 @@ as per the file content:
 >
 >   Modified to work with g++ 4.3 by Anders Elton
 >   Also added _member functions, that instead of printing the entire class in map, prints a member.
+
+# 10. Links
+Some useful links concerning STL and GDB
+https://sourceware.org/gdb/wiki/STLSupport
+http://www.yolinux.com/TUTORIALS/src/dbinit_stl_views-1.03.txt
+
+http://wiki.codeblocks.org/index.php/Pretty_Printers
+https://github.com/NREL/EnergyPlus/wiki/Debugging-STL-objects-in-GDB
+
+
+https://stackoverflow.com/questions/11606048/how-to-pretty-print-stl-containers-in-gdb
+
+https://gist.github.com/chaozh/9252fc01b3723f795589
+https://gist.github.com/skyscribe/3978082
 
 [1]: https://stackoverflow.com/q/55316620/7237062
 [2]: https://www.adacore.com/community
