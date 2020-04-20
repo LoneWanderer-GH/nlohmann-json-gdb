@@ -42,7 +42,9 @@ See [Content](#Content) and [Usage](#Usage) sections below for more details.
  - [x] the *[gdb command](gdb_script/simple_gdb_method.gdb)* : it uses the live process under debug to call `dump()`. It implies that the executable and memory are not corrupted, and variables not optimized out
  - [x] the *[python gdb pretty printer](gdb_python_pretty_printer)* : here, we do not rely on the existing dump() method but we explore memory to do it ourselves
 
+
  # 4. Usage
+ 
  ## How to load a GDB script
 
  in your gdb console:
