@@ -89,10 +89,12 @@ Here we use a kind of GDB macro defined in a [gdb script file](gdb_script/simple
 Floating point numbers may appear differently depending on the method used. This is due to differences in float-to-string from [GDB][4] and [json c++][3].
 For more confidence, we could modify the python pretty printer to provide the exact hexadecimal memory value + the decimal one.
 
+
 # 5. Possible improvements
  - [ ] the python gdb pretty printer core dump management is not (yet ?) done (i.e. core dump means no inferior process to call dump() in any way, and possibly less/no (debug) symbols to rely on)
  - [ ] printer can be customised further to print the 0x addresses, I chose not to since the whole point for me was NOT to explore them in gdb. You would have to add few python `print` here and there
  - [ ] add the hexa value for floating point numbers, or for all numerical values
+ 
  
 # 6. Known limitations
 
@@ -100,7 +102,9 @@ Not much.
 
  - Linux over windows exe build : `gprbuild` command on Ubuntu-windows/Debian-windows may not work correctly, so a legit Linux environment may be needed if you want to play with this on Linux.
 
+
  # 7. Examples / Tests
+
 
 The C++ project [debug_printer.gpr](cpp_test_project/debug_printer.gpr) can be built with the following command
 `gprbuild -p -P debug_printer.gpr`
@@ -169,6 +173,7 @@ foo["array"] = { 1, 0, 2 };
  _from a guru of my workplace_
   - simply define a single function in the program to perform the dump of a json variable. This is almost exactly similar to the gdb inferior dump() call
   
+  
 # 8. History
 
  - In March 2019, I was stuck with the lack of nlohmann json debug utilities. I could not find any support to print what the json was during a debug session. I ended up with a stack overflow post with [what I found to be revelant][1] for that matter. In addition, I was interested in playing around with GDB/memory/python, thats why I took some time to treat this matter. I ended up with the code here.
@@ -226,6 +231,7 @@ as per the file content:
 >
 >   Modified to work with g++ 4.3 by Anders Elton
 >   Also added _member functions, that instead of printing the entire class in map, prints a member.
+
 
 # 10. Links
 
