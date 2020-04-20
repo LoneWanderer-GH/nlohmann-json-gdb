@@ -13,7 +13,7 @@ Provides gdb script and python gdb script to pretty print a  [nlohmann / json][3
  7. [Examples / Tests](#7-Examples--Tests)  
  8. [History](#8-History)
  9. [Acknowledgments / LICENSES](#9-Acknowledgments--LICENSES)
- 10.[Links concerning STL and GDB](#10-Links)
+ 10. [Links concerning STL and GDB](#10-Links)
 
 # 1. Prerequisites
 
