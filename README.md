@@ -121,6 +121,8 @@ That a more advanced GDB technique. You should have a look at [this SO post](htt
 _The idea is to compile and extract the debug data into specific files.
 Then load this files into your GDB to have all symbols at hand, even if you're working with a stripped software._
 
+see also [this gdb doc](https://doc.ecoscentric.com/gnutools/doc/gdb/Files.html#Files) concerning `symbol-file `command.
+
 # 5. Possible improvements
  - [x] ~~the python gdb pretty printer core dump management is not (yet ?) done (i.e. core dump means no inferior process to call dump() in any way, and possibly less/no (debug) symbols to rely on)~~ Core dump with debug symbols tested and should be working.
  - [ ] printer can be customised further to print the 0x addresses, I chose not to since the whole point for me was NOT to explore them in gdb. You would have to add few python `print` here and there
