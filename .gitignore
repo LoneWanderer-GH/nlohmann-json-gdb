@@ -1,2 +1,7 @@
 */exe/**
 */obj/**
+**/.idea/**
+
+#gdb_python_pretty_printer/.idea/
+
+gdb_python_pretty_printer/proto.py
