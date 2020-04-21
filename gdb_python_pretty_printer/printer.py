@@ -41,6 +41,7 @@ DOWN_ARROW = "|"  # "\u21b3"
 
 INDENT = 4
 
+# https://stackoverflow.com/questions/29285287/c-getting-size-in-bits-of-integer
 PLATFORM_BITS = "64" if sys.maxsize > 2 ** 32 else "32"
 
 print("PLATFORM_BITS {}".format(PLATFORM_BITS))
