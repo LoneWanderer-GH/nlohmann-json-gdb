@@ -2,6 +2,12 @@
 
 Provides gdb script and python gdb script to pretty print a  [nlohmann / json][3]
 
+---
+
+**WORK IN PROGRESS to cleanup code and clarify usage**
+
+---
+
 **Table of contents**
  
  1. [Prerequisites](#1-Prerequisites)
@@ -18,7 +24,8 @@ Provides gdb script and python gdb script to pretty print a  [nlohmann / json][3
 # 1. Prerequisites
 
  - *GDB 8.3* debugger installed, ready to use. _Some [GDB commands knowledge][4] might be useful for your debug session to be successful ;)_
- - an executable to debug that uses the [JSON lib 3.7.3][3]
+ - an executable to debug that uses the [JSON lib 3.7.3][3] **with debug symbols available to GDB**
+ - windows 10 64. toher platform not supported due to crappy code.
 
 ## Optional
  - a [GNAT CE 2019][2] install to play with the provided sample test project
