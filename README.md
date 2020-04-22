@@ -13,17 +13,18 @@ Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3
 
 **Table of contents**
  
- 1. [Prerequisites](#1-Prerequisites)
- 2. [Installing](#2-Installing)
- 3. [Content](#3-Content)
- 4. [Usage](#4-Usage)
- 5. [Possible improvements / Contributions](#5-Possible-improvements--Contributions)
- 6. [Known limitations](#6-Known-limitations)
- 7. [Examples / Tests](#7-Examples--Tests)  
- 8. [History](#8-History)
- 9. [Acknowledgments / LICENSES](#9-Acknowledgments--LICENSES)
- 10. [Links concerning STL and GDB](#10-Links)
+ 1. [Prerequisites](#Prerequisites)
+ 2. [Installing](#Installing)
+ 3. [Content](#Content)
+ 4. [Usage](#4Usage)
+ 5. [Possible improvements / Contributions](#Possible-improvements-Contributions)
+ 6. [Known limitations](#Known-limitations)
+ 7. [Examples / Tests](#Examples-Tests)  
+ 8. [History](#History)
+ 9. [Acknowledgments / LICENSES](#Acknowledgments-LICENSES)
+ 10. [Links concerning STL and GDB](#Links)
 
+<a name="Prerequisites"></a>
 # 1. Prerequisites
 
  - *GDB 8.3* debugger installed, ready to use. Python support started with GDB 7, so it may work with versions starting GDB 7 _Some [GDB commands knowledge][4] might be useful for your debug session to be successful ;)_
@@ -42,6 +43,7 @@ Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3
 
  For the GDB Python pretty printer, it should work with any GDB version that supports python (provided no GDB api change, otherwise python code will be broken); i.e. GDB 7+. Be aware that the python code relies on some [JSON lib types definition][3], so JSON lib and python pretty printer code should be matching.
 
+<a name="Installing"></a>
 # 2. Installing
 
 Just copy the GDB and/or python script you need in a folder near your executable to debug, and of course, load it into your GDB.
@@ -50,6 +52,7 @@ See [Content](#Content) and [Usage](#Usage) sections below for more details.
 Your GDB does not support python ?
 Have a look [here for an example of GDB build on raspbian 9.11](https://github.com/LoneWanderer-GH/nlohmann-json-gdb/wiki/C---build-environment-:-GDB-8.3-on-Raspberry-Pi-3--Raspbian-9.11-stretch)
 
+<a name="Content"></a>
 # 3. Content
 
  - [x] the *[GDB command](gdb_script/simple_gdb_method.gdb)* : it uses the live process under debug to call `dump()`. It implies that the executable and memory are not corrupted, variables not optimized out
@@ -59,7 +62,7 @@ Have a look [here for an example of GDB build on raspbian 9.11](https://github.c
   
   - [x] a [cpp project to bruteforcefully find relevant offets for a given platform](offsets_finder)
 
-
+<a name="Usage"></a>
  # 4. Usage
  
  ## How to load a GDB script
@@ -112,6 +115,7 @@ Then load this files into your GDB to have all symbols at hand, even if you're w
 
 see also [this GDB doc](https://doc.ecoscentric.com/gnutools/doc/gdb/Files.html#Files) concerning `symbol-file `command.
 
+<a name="Possible-improvements-Contributions"></a>
 # 5. Possible improvements / Contributions
 
 ## Contribute
@@ -133,6 +137,7 @@ Any seasoned advice and support appreciated. Aspects I would like to improve:_
         ```
  
  
+<a name="Known-limitations"></a>
 # 6. Known limitations
 
  - Floating point numbers may appear differently depending on the method used. This is due to differences in float-to-string from [GDB][4] and [json c++][3].
@@ -142,7 +147,7 @@ For more confidence, we could modify the python pretty printer to provide the ex
 
  - other platforms : feel free to find other platform offsets, or provide a better programmatic method to navigate into the memory.
  
-
+<a name="Examples-tests"></a>
  # 7. Examples / Tests
 
 ## The test project
@@ -266,7 +271,7 @@ MAGIC_OFFSET_STD_VECTOR = 76
   - simply define a single function in the program to perform the dump of a json variable, say `print()`. Then you can call it during yourGDBsession.
   This is almost exactly similar to theGDBinferior dump() call macro `pjson` presented above.
   
-  
+<a name="History"></a>
 # 8. History
 
  - In March 2019, I was stuck with the lack of nlohmann json debug utilities. I could not find any support to print what the json was during a debug session. I ended up with a stack overflow post with [what I found to be revelant][1] for that matter. In addition, I was interested in playing around with GDB/memory/python, thats why I took some time to treat this matter. I ended up with the code here.
@@ -274,7 +279,7 @@ MAGIC_OFFSET_STD_VECTOR = 76
 
 _I'm not claiming any right or precedence over the official nlohmann / json issue or the method to perform the print using dump(). I think we all did the same thing by serendipity, and I bet I am not the first one  to have taken the .dump() call approach. All in all, if everyone can ~~work~~ debug better, that all that matters to me_
 
-
+<a name="Acknowledgments-LICENSES"></a>
 # 9. Acknowledgments / LICENSES
 
 ## ACKNOWLEDGMENTS
@@ -325,7 +330,7 @@ as per the file content:
 >   Modified to work with g++ 4.3 by Anders Elton
 >   Also added _member functions, that instead of printing the entire class in map, prints a member.
 
-
+<a name="Links"></a>
 # 10. Links
 
 Some useful links concerning STL and GDB
