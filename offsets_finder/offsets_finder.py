@@ -28,10 +28,13 @@
 # given in comments.
 
 import sys
-
+import re
 import gdb
 import platform
 import traceback
+
+ERROR_NO_CORRECT_JSON_TYPE_FOUND = 1
+ERROR_PARSING_ERROR = 42
 
 # adapted from https://github.com/hugsy/gef/blob/dev/gef.py
 # their rights are theirs
@@ -47,20 +50,15 @@ PLATFORM_BITS = "64" if sys.maxsize > 2 ** 32 else "32"
 print("PLATFORM_BITS {}".format(PLATFORM_BITS))
 
 # the strings were obtained with gdb
-nlohmann_json_type_namespace = \
-    r"nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, " \
-    r"std::allocator<char> >, bool, long long, unsigned long long, double, std::allocator, nlohmann::adl_serializer>"
-nlohmann_json_internal_map_type = \
-    r"std::map<" \
-    r"std::__cxx11::basic_string<" \
-    r"char, std::char_traits<char>, std::allocator<char> >, " \
-    r"nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, " \
-    r"std::allocator<char> >, bool, long long, unsigned long long, double, std::allocator, nlohmann::adl_serializer>, " \
-    r"std::less<void>, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, " \
-    r"std::allocator<char> > const, nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, " \
-    r"std::char_traits<char>, std::allocator<char> >, bool, long long, unsigned long long, double, std::allocator, " \
-    r"nlohmann::adl_serializer> > > " \
-    r">"
+# nlohmann_json_type_namespace = [
+#     # valid on win x64 and raspbian arm 32
+#     r"nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, " \
+#     r"std::allocator<char> >, bool, long long, unsigned long long, double, std::allocator, nlohmann::adl_serializer>",
+
+#     # at least on ubuntu 64 the type signature is different
+#     r"nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, " \
+#     r"std::allocator<char> >, bool, long, unsigned long, double, std::allocator, nlohmann::adl_serializer>"
+#     ]
 
 # STD offsets black magic
 # 64 obtained from win x64
@@ -75,26 +73,47 @@ MAGIC_OFFSET_STD_MAP = None
 """"""
 # GDB black magic
 """"""
-nlohmann_json_type = gdb.lookup_type(nlohmann_json_type_namespace).pointer()
+nlohmann_json_type_prefix = "nlohmann::basic_json"
+
+def find_platform_type():
+    """
+    Executes GDB commands to find the correct JSON type in a platform independant way.
+    Not debug symbols => no cigar
+    """
+    # takes a regex and returns a multiline string
+    info_types = gdb.execute("info types ^{}<.*>$".format(nlohmann_json_type_prefix), to_string=True)
+    # make it multines
+    lines = info_types.splitlines()
+    # correct command should have given  lines, the last one being the correct one
+    if len(lines) == 4:
+         # split last line, after line number and spaces
+        t = re.split("^\d+:\s+", lines[-1])
+        # transform result
+        t = "".join(t[1::]).split(";")[0]
+        print("")
+        print("The JSON type for this executable is".center(80, "-"))
+        print("{}".format(t).center(80, "-"))
+        print("".center(80, "-"))
+        print("")
+        return t
+
+    else:
+        raise ValueError("Too many matching types found ...\n{}".format("\n\t".join(lines)))
+
+nlohmann_json_type_namespace = find_platform_type()
+
+nlohmann_json_type    = gdb.lookup_type(nlohmann_json_type_namespace).pointer()
 std_rb_tree_node_type = gdb.lookup_type("std::_Rb_tree_node_base::_Base_ptr").pointer()
 std_rb_tree_size_type = gdb.lookup_type("std::size_t").pointer()
 
 """"""
 # from c++ source code
 # enum class value_t : std::uint8_t
-# {
-#  ...
-# };
 """"""
-enum_literals_namespace = ["nlohmann::detail::value_t::null",
-                           "nlohmann::detail::value_t::object",
-                           "nlohmann::detail::value_t::array",
-                           "nlohmann::detail::value_t::string",
-                           "nlohmann::detail::value_t::boolean",
-                           "nlohmann::detail::value_t::number_integer",
-                           "nlohmann::detail::value_t::number_unsigned",
-                           "nlohmann::detail::value_t::number_float",
-                           "nlohmann::detail::value_t::discarded"]
+enum_json_detail = gdb.lookup_type("nlohmann::detail::value_t").fields()
+enum_literal_namespace_to_literal = dict([ (f.name, f.name.split("::")[-1]) for f in enum_json_detail])
+enum_literals_namespace = enum_literal_namespace_to_literal.keys()
+
 
 enum_literal_namespace_to_literal = dict([(e, e.split("::")[-1]) for e in enum_literals_namespace])
 
@@ -314,7 +333,7 @@ def show_last_exception():
                                                     " ".join(platform.dist())))
     print(HORIZONTAL_LINE * 80)
     print("")
-    exit(-6000)
+    exit(ERROR_PARSING_ERROR)
 
 
 def build_pretty_printer():
