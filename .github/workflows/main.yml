@@ -20,7 +20,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     - name: Install relevant packets (gnat and texinfo)
-      run: sudo apt-get install gnat texinfo
+      run: sudo apt-get install gnat texinfo gdb
     
 #     - name: Locate GDB version
 #       run: which gdb
