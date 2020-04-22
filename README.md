@@ -1,10 +1,14 @@
 # A simplistic nlohmann-json-gdb pretty printer
 
 Provides gdb script and python gdb script to pretty print a  [nlohmann / json][3]
+ - [x] compatible with a live inferior process and debug symbols
+ - [x] compatible with core dump files with debug symbols
+ - Tested on:
+   - Win Intel x64
+   - Raspbian arm x32
 
----
-
-**WORK IN PROGRESS to cleanup code and clarify usage**
+_Coding technique for the pretty printer is quite naive, but it works.
+Any seasoned advice and support appreciated._
 
 ---
 
@@ -23,31 +27,48 @@ Provides gdb script and python gdb script to pretty print a  [nlohmann / json][3
 
 # 1. Prerequisites
 
- - *GDB 8.3* debugger installed, ready to use. _Some [GDB commands knowledge][4] might be useful for your debug session to be successful ;)_
- - an executable to debug that uses the [JSON lib 3.7.3][3] **with debug symbols available to GDB**
- - windows 10 64. toher platform not supported due to crappy code.
+ - *GDB 8.3* debugger installed, ready to use. Python support started with GDB 7, so it may work with versions starting GDB 7 _Some [GDB commands knowledge][4] might be useful for your debug session to be successful ;)_
+ - an executable to debug **with debug symbols available to GDB** which uses the [JSON lib 3.7.3][3]
+ - or a core dump **with debug symbols available to GDB** (for linux users)
+   - Win Intel x64
+   - or Raspbian arm x32
+   - No other platform tested, feel free to contribute
 
 ## Optional
- - a [GNAT CE 2019][2] install to play with the provided sample test project
+
+ - a [GNAT CE 2019][2] install to play with the provided sample test projects
 
 
 ## Compatibility
  
- For the GDB command, it should work with other GDB versions that support commands and printf.
+ For the GDB command, it should work with other GDB versions that support commands and printf (GDB 7+).
 
-For the GDB Python pretty printer, it should work with any GDB version that supports python (provided no gdb api change, otherwise python code will be broken). Be aware that the python code relies on some [JSON lib types definition][3], so JSON lib and python pretty printer code should be matching.
+ For the GDB Python pretty printer, it should work with any GDB version that supports python (provided no gdb api change, otherwise python code will be broken); i.e. GDB 7+. Be aware that the python code relies on some [JSON lib types definition][3], so JSON lib and python pretty printer code should be matching.
 
 # 2. Installing
 
-Just copy the gdb and/or python script you need in a folder near your executable to debug.
+Just copy the gdb and/or python script you need in a folder near your executable to debug, and of course, load it into your GDB.
 See [Content](#Content) and [Usage](#Usage) sections below for more details.
+
+Your GDB does not support python ?
+Have a look [here for an example of GDB build on raspbian 9.11](https://github.com/LoneWanderer-GH/nlohmann-json-gdb/wiki/C---build-environment-:-GDB-8.3-on-Raspberry-Pi-3--Raspbian-9.11-stretch)
 
 # 3. Content
 
- - [x] a [sample c++ project](cpp_test_project), see [7. Examples / Tests](#7-Examples--Tests) for further details
+ - [x] the *[gdb command](gdb_script/simple_gdb_method.gdb)* : it uses the live process under debug to call `dump()`. It implies that the executable and memory are not corrupted, variables not optimized out
+ - [x] the *[python gdb pretty printer](gdb_python_pretty_printer)* : here, we do not rely on the existing dump() method but we explore memory to do it ourselves, if the inferior process is broken in some way, we may still have some means to dump a json compare to previous method.
+ 
+  - [x] a [sample c++ project](cpp_test_project), see [7. Examples / Tests](#7-Examples--Tests) for further details
   
- - [x] the *[gdb command](gdb_script/simple_gdb_method.gdb)* : it uses the live process under debug to call `dump()`. It implies that the executable and memory are not corrupted, and variables not optimized out
- - [x] the *[python gdb pretty printer](gdb_python_pretty_printer)* : here, we do not rely on the existing dump() method but we explore memory to do it ourselves
+  - [x] a [cpp project to bruteforcefully find relevant offets for a given platform](offsets_finder)
+    1. build the exe, see [7. Examples / Tests](#7-Examples--Tests) for a build example
+    2. start a debug session and load the associated `.gdbini` file
+    3. gdb console should print stuff with the answers
+    4. gdb offers a [command to perform the same task in a probably more convenient way](https://stackoverflow.com/questions/1768620/how-do-i-show-what-fields-a-struct-has-in-gdb)(see [docs](https://sourceware.org/gdb/current/onlinedocs/gdb/Symbols.html#Symbols), I discovered that a bit late :D)
+        ```
+        ptype
+        ptype /o struct my_struct
+        ```
 
 
  # 4. Usage
@@ -58,6 +79,8 @@ See [Content](#Content) and [Usage](#Usage) sections below for more details.
  ```
  (gdb) source some_file
  ```
+ Works for both GDB and Python scripts.
+ I strongly suggest you refer to GDB documentation.
 
  ## GDB pretty printer usage (the Python printer)
 
@@ -91,24 +114,30 @@ Here we use a kind of GDB macro defined in a [gdb script file](gdb_script/simple
 }
 ```
 
-## Remarks
+## No debug symbols ?
 
-Floating point numbers may appear differently depending on the method used. This is due to differences in float-to-string from [GDB][4] and [json c++][3].
-For more confidence, we could modify the python pretty printer to provide the exact hexadecimal memory value + the decimal one.
+That a more advanced GDB technique. You should have a look at [this SO post](https://stackoverflow.com/questions/866721/how-to-generate-gcc-debug-symbol-outside-the-build-target) where pretty much everything is explained.
 
+_The idea is to compile and extract the debug data into specific files.
+Then load this files into your GDB to have all symbols at hand, even if you're working with a stripped software._
+
+see also [this gdb doc](https://doc.ecoscentric.com/gnutools/doc/gdb/Files.html#Files) concerning `symbol-file `command.
 
 # 5. Possible improvements
- - [ ] the python gdb pretty printer core dump management is not (yet ?) done (i.e. core dump means no inferior process to call dump() in any way, and possibly less/no (debug) symbols to rely on)
+ - [x] ~~the python gdb pretty printer core dump management is not (yet ?) done (i.e. core dump means no inferior process to call dump() in any way, and possibly less/no (debug) symbols to rely on)~~ Core dump with debug symbols tested and should be working.
  - [ ] printer can be customised further to print the 0x addresses, I chose not to since the whole point for me was NOT to explore them in gdb. You would have to add few python `print` here and there
  - [ ] add the hexa value for floating point numbers, or for all numerical values
  
  
 # 6. Known limitations
 
-Not much.
+ - Floating point numbers may appear differently depending on the method used. This is due to differences in float-to-string from [GDB][4] and [json c++][3].
+For more confidence, we could modify the python pretty printer to provide the exact hexadecimal memory value + the decimal one for sake of completness.
 
  - Linux over windows exe build : `gprbuild` command on Ubuntu-windows/Debian-windows may not work correctly, so a legit Linux environment may be needed if you want to play with this on Linux.
 
+ - other platforms : feel free to find other platform offsets, or provide a better programmatic method to navigate into the memory.
+ 
 
  # 7. Examples / Tests
 
@@ -121,6 +150,7 @@ The C++ project [debug_printer.gpr](cpp_test_project/debug_printer.gpr) can be b
 
  example:
  ```// C++ code
+...
 json foo;
 foo["flex"] = 0.2;
 foo["bool"] = true;
@@ -130,6 +160,7 @@ foo["trap "] = "you fell";
 foo["awesome_str"] = "bleh";
 foo["nested"] = {{"bar", "barz"}};
 foo["array"] = { 1, 0, 2 };
+...
 ```
 
  gdb commands (once everything correctly loaded)
