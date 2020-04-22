@@ -175,6 +175,16 @@ foo["array"] = { 1, 0, 2 };
 ...
 ```
 
+Once the project is loaded, launch a GDB session.
+2 cases :
+
+ - GDB autoloads the `.gdbinit` file located near the gpr file
+ - GDb does not autoload the `.gdbinit` file. In this case type in gdb:
+ 
+     ```
+     (gdb) source .gdbinit
+     ```
+     
  GDB commands (once everything correctly loaded)
 
 ```
