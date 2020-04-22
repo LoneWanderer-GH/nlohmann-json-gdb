@@ -19,7 +19,7 @@ Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3
  4. [Usage](#Usage)
  5. [Possible improvements / Contributions](#Possible-improvements-Contributions)
  6. [Known limitations](#Known-limitations)
- 7. [Examples / Tests](#Examples-Tests)  
+ 7. [Examples and tests](#Examples-Tests)  
  8. [History](#History)
  9. [Acknowledgments / LICENSES](#Acknowledgments-LICENSES)
  10. [Links concerning STL and GDB](#Links)
@@ -66,22 +66,22 @@ Have a look [here for an example of GDB build on raspbian 9.11](https://github.c
 
 # 4. Usage
  
- ## How to load a GDB script
+## How to load a GDB script
 
- in your GDB console:
- ```
- (gdb) source some_file
- ```
- Works for both GDB and Python scripts.
- I strongly suggest you refer to GDB documentation.
+in your GDB console:
+```
+(gdb) source some_file
+```
+Works for both GDB and Python scripts.
+I strongly suggest you refer to GDB documentation.
 
- ## GDB pretty printer usage (the Python printer)
+## GDB pretty printer usage (the Python printer)
 
- The GDB Pretty printer is [written in Python](gdb_python_pretty_printer/printer.py) which is loaded with a [GDB script](gdb_python_pretty_printer/load_pretty_printer.gdb)
+The GDB Pretty printer is [written in Python](gdb_python_pretty_printer/printer.py) which is loaded with a [GDB script](gdb_python_pretty_printer/load_pretty_printer.gdb)
 
- Then, a simple GDB command does the trick:
+Then, a simple GDB command does the trick:
 
- ```
+```
 (gdb) p foo
 {
     "flex" : 0.2,
@@ -92,11 +92,11 @@ Have a look [here for an example of GDB build on raspbian 9.11](https://github.c
 }
 ```
 
- ## GDB script usage (the GDB command)
+## GDB script usage (the GDB command)
 
 Here we use a kind of **GDB macro** defined in a [GDB script file](gdb_script/simple_gdb_method.gdb)
 
- ```
+```
 (gdb) pjson foo
 {
     "flex" : 0.2,
@@ -136,8 +136,8 @@ Any seasoned advice and support appreciated. Aspects I would like to improve:_
         ptype
         ptype /o struct my_struct
         ```
- 
- 
+
+
 <a name="Known-limitations"></a>
 # 6. Known limitations
 
@@ -147,9 +147,11 @@ For more confidence, we could modify the python pretty printer to provide the ex
  - Linux over windows exe build : `gprbuild` command on Ubuntu-windows/Debian-windows may not work correctly, so a legit Linux environment may be needed if you want to play with this on Linux.
 
  - other platforms : feel free to find other platform offsets, or provide a better programmatic method to navigate into the memory.
- 
-<a name="Examples-tests"></a>
-# 7. Examples / Tests
+
+
+<a name="Examples-Tests"></a>
+# 7. Examples and tests
+
 
 ## The test project
 
@@ -160,7 +162,8 @@ The C++ project [debug_printer.gpr](cpp_test_project/debug_printer.gpr) can be b
  see [main.cpp](cpp_test_project/src/main.cpp) for some basic C++ JSON declarations.
 
  example:
- ```// C++ code
+```
+// C++ code
 ...
 json foo;
 foo["flex"] = 0.2;
@@ -176,7 +179,7 @@ foo["array"] = { 1, 0, 2 };
 
  GDB commands (once everything correctly loaded)
 
- ```(gdb) pjson foo
+```(gdb) pjson foo
 {
     "array": [
         1,
@@ -193,11 +196,11 @@ foo["array"] = { 1, 0, 2 };
     },
     "trap ": "you fell"
 }
- ```
+```
 
  GDB python pretty printer:
 
- ```
+```
  (gdb) p foo
  {
     "array" : [
@@ -221,7 +224,6 @@ foo["array"] = { 1, 0, 2 };
 
  1. build the project [simple_offsets_finder.gpr](offsets_finder/simple_offsets_finder.gpr) with the command
         `gprbuild -p -P debug_printer.gpr`
-        ```
 
  2. Start a GDB session, here is an example on Raspberry Pi 3+ (arm32):
 
@@ -267,7 +269,7 @@ MAGIC_OFFSET_STD_VECTOR = 76
  ===> Offsets for STD::VECTOR : [ FOUND ] <=== 
 ```
 
- ## Another approach I know of
+## Another approach I know of
  _from a guru of my workplace_
   - simply define a single function in the program to perform the dump of a json variable, say `print()`. Then you can call it during yourGDBsession.
   This is almost exactly similar to theGDBinferior dump() call macro `pjson` presented above.
@@ -324,12 +326,12 @@ as per the file content:
 
 >   Simple GDB Macros writen by Dan Marinescu (H-PhD) - License GPL
 >   Inspired by intial work of Tom Malnar,
->     Tony Novac (PhD) / Cornell / Stanford,
->     Gilad Mishne (PhD) and Many Many Others.
+>    Tony Novac (PhD) / Cornell / Stanford,
+>    Gilad Mishne (PhD) and Many Many Others.
 >   Contact: dan_c_marinescu@yahoo.com (Subject: STL)
 >
 >   Modified to work with g++ 4.3 by Anders Elton
->   Also added _member functions, that instead of printing the entire class in map, prints a member.
+>   Also added `_member` functions, that instead of printing the entire class in map, prints a member.
 
 <a name="Links"></a>
 # 10. Links
