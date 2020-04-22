@@ -1,8 +1,13 @@
 
 echo #\n
 echo # Force gdb to use pretty print of structures managed by default (instead of a barely flat line)\n
+echo set print pretty
 set print pretty
 
+
+echo #\n
+echo # load the offset finder python gdb script\n
+echo source offsets_finder.py
 source offsets_finder.py
 
 #
