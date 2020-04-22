@@ -42,7 +42,7 @@ jobs:
       
       
     - name: build the test project
-      run: gprbuild -p -P simple_offsets_finder.gpr
+      run: pwd && ls -al && gprbuild -p -P "simple_offsets_finder.gpr"
 
     # Runs a set of commands using the runners shell
     - name: Start a gdb session
