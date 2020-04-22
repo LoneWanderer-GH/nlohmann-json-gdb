@@ -29,13 +29,10 @@ jobs:
       run: gdb --version
     
     - name: Prepare some GDB command tests
-      run: echo -e "help python\npython\nimport sys\nprint(\"Foo\")\nsys.exit(42)" > python_test.gdb
+      run: echo -e "help python\npython\nimport sys\nprint(\"Foo\")\nsys.exit(0)\nend\nq 25" > python_test.gdb
       
-    - name: Check GDB supports python
+    - name: Check GDB supports python (exit code 25 means something went wrong in the python commands) otherwise exit code should be the 0 force un sys.exit(0)
       run: gdb --command=python_test.gdb --batch 
-      
-    - name: Control return code
-      run: \[ $? -eq 42 \]
       
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
