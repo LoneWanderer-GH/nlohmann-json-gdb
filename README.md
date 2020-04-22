@@ -1,5 +1,3 @@
-![](assets/social_media_banner.png)
-
 # A simplistic GDB pretty printer for [nlohmann-json c++][3] 
 
 Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3]
