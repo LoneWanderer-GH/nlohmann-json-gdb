@@ -21,10 +21,11 @@ cd ../cpp_test_project
 #
 echo #\n
 echo # Auto setting break point before exe prints mixed_nested\n
-break main.cpp:45
+break main.cpp:70
 
 
-# code to execute once breakpoint is reached (basically, full jsons prints using various methods)
+# code to execute once breakpoint is reached
+# (basically, full jsons prints using various methods)
 command 1
 
 echo #\n

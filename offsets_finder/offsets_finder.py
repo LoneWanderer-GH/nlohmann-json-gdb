@@ -41,7 +41,6 @@ DOWN_ARROW = "|"  # "\u21b3"
 
 INDENT = 4
 
-# https://stackoverflow.com/questions/29285287/c-getting-size-in-bits-of-integer
 PLATFORM_BITS = "64" if sys.maxsize > 2 ** 32 else "32"
 
 print("PLATFORM_BITS {}".format(PLATFORM_BITS))
@@ -66,11 +65,11 @@ nlohmann_json_internal_map_type = \
 # 64 obtained from win x64
 # 32 obtained from raspberry pi arm32
 # other platforms ? find them yourself ^^
-MAGIC_OFFSET_STD_VECTOR = {"64": 16, "32": 16}
-MAGIC_OFFSET_STD_MAP_KEY = {"64": 32, "32": 16}
-MAGIC_OFFSET_STD_MAP_VAL = {"64": 32, "32": 24}
-MAGIC_OFFSET_STD_MAP_NODE_COUNT = {"64": 16, "32": 8}
-MAGIC_OFFSET_STD_MAP = {"64": 24, "32": 12}
+MAGIC_OFFSET_STD_VECTOR = None
+MAGIC_OFFSET_STD_MAP_KEY = None
+MAGIC_OFFSET_STD_MAP_VAL = None
+MAGIC_OFFSET_STD_MAP_NODE_COUNT = None
+MAGIC_OFFSET_STD_MAP = None
 
 """"""
 # GDB black magic
@@ -142,53 +141,77 @@ class LohmannJSONPrinter(object):
 
         # traversing tree is a an adapted copy pasta from STL gdb parser
         # (http://www.yolinux.com/TUTORIALS/src/dbinit_stl_views-1.03.txt and similar links)
+        first_node_offset = -1
+        node_count_offset = -1
+        offset_key = -1
+        offset_val = -1
+        for first_node_offset in range(1,96,1):
+            try:
+                tree_size = None
+                node = None
+                _M_t = std_stl_item_to_int_address(o.referenced_value().address)
+                _M_t_M_impl_M_header_M_left = _M_t + first_node_offset
+                for node_count_offset in range(1,96,1):
+                    try:
+                        _M_t_M_impl_M_node_count    = _M_t + first_node_offset + node_count_offset
+                        node = gdb.Value(long(_M_t_M_impl_M_header_M_left)).cast(std_rb_tree_node_type).referenced_value()
+                        tree_size = gdb.Value(long(_M_t_M_impl_M_node_count)).cast(std_rb_tree_size_type).referenced_value()
 
-        _M_t = std_stl_item_to_int_address(o.referenced_value().address)
-        _M_t_M_impl_M_header_M_left = _M_t + MAGIC_OFFSET_STD_MAP[PLATFORM_BITS]
-        _M_t_M_impl_M_node_count = _M_t + MAGIC_OFFSET_STD_MAP[PLATFORM_BITS] + MAGIC_OFFSET_STD_MAP_NODE_COUNT[
-            PLATFORM_BITS]
+                        if tree_size != 1:
+                            continue
+                        else:
+                            # print("Correct tree size (=1)")
+                            # print("Testing _M_Impl._M_header._M_left offset {}".format(first_node_offset))
+                            # print("Testing _M_Impl._M_node_count offset {}".format(node_count_offset))
+                            key_found = False
 
-        node = gdb.Value(long(_M_t_M_impl_M_header_M_left)).cast(std_rb_tree_node_type).referenced_value()
-        tree_size = gdb.Value(long(_M_t_M_impl_M_node_count)).cast(std_rb_tree_size_type).referenced_value()
+                            for offset_key in range(1,96,1):
+                                try:
+                                    # print("Testing Node.Key {}".format(offset_key))
+                                    key_address = std_stl_item_to_int_address(node) + offset_key
+                                    k_str = parse_std_str_from_hexa_address(hex(key_address))
+                                    if "first" in k_str:
+                                        key_found = True
+                                        print("Found the key '{}'".format(k_str))
+                                        break
+                                except:
+                                    continue
+                            if not key_found:
+                                continue
 
-        i = 0
+                            value_found = False
+                            for offset_val in range(1,96,1):
+                                try:
+                                    # print("Testing Node.Value {}".format(offset_val))
+                                    value_address = key_address + offset_val
+                                    value_object = gdb.Value(long(value_address)).cast(nlohmann_json_type)
+                                    v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
+                                    if "second" in v_str:
+                                        print("Found the value '{}'".format(v_str))
+                                        value_found = True
+                                        break
+                                except:
+                                    continue
+                            if not value_found:
+                                continue
+                            if key_found and value_found:
+                                print("\n\nOffsets for STD::MAP exploration are:\n")
+                                print("MAGIC_OFFSET_STD_MAP            = {}".format(first_node_offset))
+                                print("MAGIC_OFFSET_STD_MAP_NODE_COUNT = {}".format(node_count_offset))
+                                print("MAGIC_OFFSET_STD_MAP_KEY        = {}".format(offset_key))
+                                print("MAGIC_OFFSET_STD_MAP_VAL        = {}".format(offset_val))
+                                return "\n ===> Offsets for STD::MAP : [ FOUND ] <=== "
+                    except:
+                        continue
+            except:
+                continue
+            # print("Offsets for STD::MAP exploration incomplete with these values:")
+            # print("MAGIC_OFFSET_STD_MAP            = {}".format(first_node_offset))
+            # print("MAGIC_OFFSET_STD_MAP_NODE_COUNT = {}".format(node_count_offset))
+            # print("MAGIC_OFFSET_STD_MAP_KEY        = {}".format(offset_key))
+            # print("MAGIC_OFFSET_STD_MAP_VAL        = {}".format(offset_val))
+        return "\n ===> Offsets for STD::MAP : [ NOT FOUND ] <=== "
 
-        if tree_size == 0:
-            return "{}"
-        else:
-            s = "{\n"
-            self.indent_level += 1
-            while i < tree_size:
-                key_address = std_stl_item_to_int_address(node) + MAGIC_OFFSET_STD_MAP_KEY[PLATFORM_BITS]
-
-                k_str = parse_std_str_from_hexa_address(hex(key_address))
-
-                value_address = key_address + MAGIC_OFFSET_STD_MAP_VAL[PLATFORM_BITS]
-                value_object = gdb.Value(long(value_address)).cast(nlohmann_json_type)
-
-                v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
-
-                k_v_str = "{} : {}".format(k_str, v_str)
-                end_of_line = "\n" if tree_size <= 1 or i == tree_size else ",\n"
-
-                s = s + (" " * (self.indent_level * INDENT)) + k_v_str + end_of_line
-
-                if std_stl_item_to_int_address(node["_M_right"]) != 0:
-                    node = node["_M_right"]
-                    while std_stl_item_to_int_address(node["_M_left"]) != 0:
-                        node = node["_M_left"]
-                else:
-                    tmp_node = node["_M_parent"]
-                    while std_stl_item_to_int_address(node) == std_stl_item_to_int_address(tmp_node["_M_right"]):
-                        node = tmp_node
-                        tmp_node = tmp_node["_M_parent"]
-
-                    if std_stl_item_to_int_address(node["_M_right"]) != std_stl_item_to_int_address(tmp_node):
-                        node = tmp_node
-                i += 1
-            self.indent_level -= 2
-            s = s + (" " * (self.indent_level * INDENT)) + "}"
-            return s
 
     def parse_as_str(self):
         return parse_std_str_from_hexa_address(str(self.val["m_value"][self.field_type_short]))
@@ -213,21 +236,20 @@ class LohmannJSONPrinter(object):
         i = 0
         start_address = std_stl_item_to_int_address(start)
         if size == 0:
-            s = "[]"
+            pass
         else:
-            self.indent_level += 1
-            s = "[\n"
-            while i < size:
-                offset = i * MAGIC_OFFSET_STD_VECTOR[PLATFORM_BITS]
-                i_address = start_address + offset
-                value_object = gdb.Value(long(i_address)).cast(nlohmann_json_type)
-                v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
-                end_of_line = "\n" if size <= 1 or i == size else ",\n"
-                s = s + (" " * (self.indent_level * INDENT)) + v_str + end_of_line
-                i += 1
-            self.indent_level -= 2
-            s = s + (" " * (self.indent_level * INDENT)) + "]"
-        return s
+            for offset in range(1,128,1):
+                try:
+                    i_address = start_address + offset
+                    value_object = gdb.Value(long(i_address)).cast(nlohmann_json_type)
+                    v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
+                    if "25" in v_str:
+                        print("\n\nOffsets for STD::VECTOR exploration are:\n")
+                        print("MAGIC_OFFSET_STD_VECTOR = {}".format(offset))
+                        return "\n ===> Offsets for STD::VECTOR : [ FOUND ] <=== "
+                except:
+                    continue
+        return " ===> Offsets for STD::VECTOR : [ NOT FOUND ] <=== "
 
     def is_leaf(self):
         return self.field_type_short != "object" and self.field_type_short != "array"
@@ -253,15 +275,16 @@ class LohmannJSONPrinter(object):
             self.field_type_full_namespace = self.val["m_type"]
             str_val = str(self.field_type_full_namespace)
             if not str_val in enum_literal_namespace_to_literal:
-                raise ValueError("Unkown litteral for data type enum. Found {}\nNot in:\n{}".format(str_val,
-                                                                                                    "\n\t".join(
-                                                                                                        enum_literal_namespace_to_literal)))
+                return "invalid"
+                # raise ValueError("Unkown litteral for data type enum. Found {}\nNot in:\n{}".format(str_val,
+                #                                                                                     "\n\t".join(
+                #                                                                                         enum_literal_namespace_to_literal)))
             self.field_type_short = enum_literal_namespace_to_literal[str_val]
             return self.function_map[str_val]()
             # return self.parse()
         except:
-            show_last_exception()
-            return "NOT A JSON OBJECT // CORRUPTED ?"
+            # show_last_exception()
+            return "invalid"
 
     def display_hint(self):
         return self.val.type
