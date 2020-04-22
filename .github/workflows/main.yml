@@ -37,13 +37,11 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    - name: change directory
-      run: pwd && ls -al && cd offsets_finder
-      
-      
     - name: build the test project
-      run: pwd && ls -al && gprbuild -p -P "simple_offsets_finder.gpr"
+      run: pwd && ls -al && gprbuild -p -P simple_offsets_finder.gpr
+      working-directory: ./offsets_finder
 
     # Runs a set of commands using the runners shell
     - name: Start a gdb session
-      run: gdb --se=/exe/main --
+      run: gdb --se=/exe/main --command=.gdbinit --batch
+      working-directory: ./offsets_finder
