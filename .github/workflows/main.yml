@@ -29,20 +29,24 @@ jobs:
       run: gdb --version
     
     - name: Prepare some GDB command tests
-      run: echo -e "help python\npython\nprint("Foo")\n" > python_test.gdb
+      run: echo -e "help python\npython\nimport sys\nprint("Foo")\nsys.exit(42)" > python_test.gdb
       
     - name: Check GDB supports python
-      run: gdb --command=python_test.gdb
+      run: gdb --command=python_test.gdb --batch 
+      
+    - name: Control return code
+      run: \[ $? -eq 42 \]
       
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
     - name: change directory
-      run: pwd && ls -al && cd $GITHUB_WORKSPACE/offsets_finder
+      run: pwd && ls -al && cd offsets_finder
+      
       
     - name: build the test project
       run: gprbuild -p -P simple_offsets_finder.gpr
 
     # Runs a set of commands using the runners shell
-#     - name: Start a gdb session
-#       run: gdb --se=/exe/main
+    - name: Start a gdb session
+      run: gdb --se=/exe/main --
