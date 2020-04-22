@@ -29,7 +29,7 @@ jobs:
       run: gdb --version
     
     - name: Prepare some GDB command tests
-      run: echo -e "help python\npython\nimport sys\nprint("Foo")\nsys.exit(42)" > python_test.gdb
+      run: echo -e "help python\npython\nimport sys\nprint(\"Foo\")\nsys.exit(42)" > python_test.gdb
       
     - name: Check GDB supports python
       run: gdb --command=python_test.gdb --batch 
