@@ -54,36 +54,36 @@ jobs:
 
   run-test-project:
     runs-on: ubuntu-latest
-        steps:
-          - name: Install relevant packets (gnat and texinfo)
-            run: sudo apt-get install gnat texinfo gdb gprbuild
+    steps:
+      - name: Install relevant packets (gnat and texinfo)
+        run: sudo apt-get install gnat texinfo gdb gprbuild
 
-          - name: Locate GDB version
-            run: which gdb
+      - name: Locate GDB version
+        run: which gdb
 
-          - name: Check GDB version
-            run: gdb --version
+      - name: Check GDB version
+        run: gdb --version
 
-          - name: Output GDB configuration
-            run: gdb --configuration
+      - name: Output GDB configuration
+        run: gdb --configuration
 
-          - name: Prepare some GDB command tests
-            run: echo -e "maintenance set internal-error quit yes\nhelp python\npython\nimport sys\nprint(\"Foo\")\nsys.exit(0)\nend\nq 25" > python_test.gdb
+      - name: Prepare some GDB command tests
+        run: echo -e "maintenance set internal-error quit yes\nhelp python\npython\nimport sys\nprint(\"Foo\")\nsys.exit(0)\nend\nq 25" > python_test.gdb
 
-          - name: Check GDB supports python (exit code 25 means something went wrong in the python commands) otherwise exit code should be the 0 force un sys.exit(0)
-            run: gdb --command=python_test.gdb --batch
+      - name: Check GDB supports python (exit code 25 means something went wrong in the python commands) otherwise exit code should be the 0 force un sys.exit(0)
+        run: gdb --command=python_test.gdb --batch
 
-          # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-          - uses: actions/checkout@v2
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
 
-          - name: build the test project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
-            run: pwd && ls -al && gprbuild -p
-            working-directory: ./cpp_test_project
+      - name: build the test project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
+        run: pwd && ls -al && gprbuild -p
+        working-directory: ./cpp_test_project
 
-          - name: Prepend GDB quit on error (and output file for check)
-            run: echo -e "maintenance set internal-error quit yes\n$(cat .gdbinit)" > .gdbinit && cat .gdbinit
+      - name: Prepend GDB quit on error (and output file for check)
+        run: echo -e "maintenance set internal-error quit yes\n$(cat .gdbinit)" > .gdbinit && cat .gdbinit
 
-          # Runs a set of commands using the runners shell
-          - name: Start a gdb session
-            run: gdb --se=./exe/main --command=.gdbinit --batch
-            working-directory: ./cpp_test_project
+      # Runs a set of commands using the runners shell
+      - name: Start a gdb session
+        run: gdb --se=./exe/main --command=.gdbinit --batch
+        working-directory: ./cpp_test_project
