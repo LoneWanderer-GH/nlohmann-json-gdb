@@ -24,6 +24,8 @@ break main.cpp:44
 # code to execute once breakpoint is reached (basically, full jsons prints using various methods)
 command 1
 
+p simple_json.m_value.object
+
 echo #\n
 echo # ### Prints using python pretty printer offsetts finder ###\n
 echo #\n
