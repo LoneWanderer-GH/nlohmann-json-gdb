@@ -7,7 +7,7 @@ set print pretty
 
 echo #\n
 echo # load the offset finder python gdb script\n
-echo source offsets_finder.py
+echo source offsets_finder.py\n
 source offsets_finder.py
 
 #
