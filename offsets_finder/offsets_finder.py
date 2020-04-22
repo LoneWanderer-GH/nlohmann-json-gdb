@@ -179,13 +179,13 @@ class LohmannJSONPrinter(object):
         node_count_offset = -1
         offset_key = -1
         offset_val = -1
-        for first_node_offset in range(1,96,1):
+        for first_node_offset in range(1,256,1):
             try:
                 tree_size = None
                 node = None
                 _M_t = std_stl_item_to_int_address(o.referenced_value().address)
                 _M_t_M_impl_M_header_M_left = _M_t + first_node_offset
-                for node_count_offset in range(1,96,1):
+                for node_count_offset in range(1,256,1):
                     try:
                         _M_t_M_impl_M_node_count    = _M_t + first_node_offset + node_count_offset
                         node = gdb.Value(long(_M_t_M_impl_M_header_M_left)).cast(STD_RB_TREE_NODE_TYPE).referenced_value()
@@ -199,7 +199,7 @@ class LohmannJSONPrinter(object):
                             # print("Testing _M_Impl._M_node_count offset {}".format(node_count_offset))
                             key_found = False
 
-                            for offset_key in range(1,96,1):
+                            for offset_key in range(1,256,1):
                                 try:
                                     # print("Testing Node.Key {}".format(offset_key))
                                     key_address = std_stl_item_to_int_address(node) + offset_key
@@ -214,7 +214,7 @@ class LohmannJSONPrinter(object):
                                 continue
 
                             value_found = False
-                            for offset_val in range(1,96,1):
+                            for offset_val in range(1,256,1):
                                 try:
                                     # print("Testing Node.Value {}".format(offset_val))
                                     value_address = key_address + offset_val
@@ -272,7 +272,7 @@ class LohmannJSONPrinter(object):
         if size == 0:
             pass
         else:
-            for offset in range(1,128,1):
+            for offset in range(1,256,1):
                 try:
                     i_address = start_address + offset
                     value_object = gdb.Value(long(i_address)).cast(NLOHMANN_JSON_TYPE)
