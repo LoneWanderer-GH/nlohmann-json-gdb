@@ -7,3 +7,5 @@
 gdb_python_pretty_printer/proto.py
 
 assets/captures/
+
+offsets_finder/prout.py
