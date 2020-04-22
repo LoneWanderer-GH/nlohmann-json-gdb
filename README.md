@@ -16,7 +16,7 @@ Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3
  1. [Prerequisites](#Prerequisites)
  2. [Installing](#Installing)
  3. [Content](#Content)
- 4. [Usage](#4Usage)
+ 4. [Usage](#Usage)
  5. [Possible improvements / Contributions](#Possible-improvements-Contributions)
  6. [Known limitations](#Known-limitations)
  7. [Examples / Tests](#Examples-Tests)  
@@ -63,7 +63,8 @@ Have a look [here for an example of GDB build on raspbian 9.11](https://github.c
   - [x] a [cpp project to bruteforcefully find relevant offets for a given platform](offsets_finder)
 
 <a name="Usage"></a>
- # 4. Usage
+
+# 4. Usage
  
  ## How to load a GDB script
 
@@ -148,7 +149,7 @@ For more confidence, we could modify the python pretty printer to provide the ex
  - other platforms : feel free to find other platform offsets, or provide a better programmatic method to navigate into the memory.
  
 <a name="Examples-tests"></a>
- # 7. Examples / Tests
+# 7. Examples / Tests
 
 ## The test project
 
