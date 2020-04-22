@@ -28,6 +28,9 @@ jobs:
     - name: Check GDB version
       run: gdb --version
 
+    - name: Output GDB configuration
+      run: gdb --configuration
+
     - name: Prepare some GDB command tests
       run: echo -e "maintenance set internal-error quit yes\nhelp python\npython\nimport sys\nprint(\"Foo\")\nsys.exit(0)\nend\nq 25" > python_test.gdb
 
