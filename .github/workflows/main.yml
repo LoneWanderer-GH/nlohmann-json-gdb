@@ -41,7 +41,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Build the test project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
-      run: pwd && ls -al && gprbuild -p
+      run: pwd && ls -al && gprbuild -p -vm
       working-directory: ./offsets_finder
 
     - name: append GDB quit on error
@@ -77,7 +77,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: build the test project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
-        run: pwd && ls -al && gprbuild -p
+        run: pwd && ls -al && gprbuild -p -vm
         working-directory: ./cpp_test_project
 
       - name: Prepend GDB quit on error (and output file for check)
