@@ -177,7 +177,8 @@ foo["array"] = { 1, 0, 2 };
 
  GDB commands (once everything correctly loaded)
 
-```(gdb) pjson foo
+```
+(gdb) pjson foo
 {
     "array": [
         1,
