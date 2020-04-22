@@ -22,8 +22,8 @@ jobs:
     - name: Install relevant packets (gnat and texinfo)
       run: sudo apt-get install gnat texinfo
     
-    - name: Locate GDB version
-      run: which gdb
+#     - name: Locate GDB version
+#       run: which gdb
       
     - name: Check GDB version
       run: gdb --version
