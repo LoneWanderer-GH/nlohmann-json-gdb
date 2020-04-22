@@ -223,7 +223,7 @@ foo["array"] = { 1, 0, 2 };
 (gdb) file offsets_finder/exe/main  ## you may change the path to fit your folder tree
 Reading symbols from offsets_finder/exe/main...
 No breakpoints or watchpoints.
-(gdb) source offsets_finder/.gdbinit
+(gdb) source offsets_finder/find_offsets.gdb
 #
 # Force gdb to use pretty print of structures managed by default (instead of a barely flat line)
 PLATFORM_BITS 32
