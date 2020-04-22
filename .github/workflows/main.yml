@@ -46,6 +46,7 @@ jobs:
 
     - name: append GDB quit on error
       run: echo "maintenance set internal-error quit yes\n$(cat find_offsets.gdb)" > find_offsets.gdb && cat find_offsets.gdb
+      working-directory: ./offsets_finder
 
     # Runs a set of commands using the runners shell
     - name: Start a gdb session
@@ -82,6 +83,7 @@ jobs:
 
       - name: Prepend GDB quit on error (and output file for check)
         run: echo -e "maintenance set internal-error quit yes\n$(cat .gdbinit)" > .gdbinit && cat .gdbinit
+        working-directory: ./cpp_test_project
 
       # Runs a set of commands using the runners shell
       - name: Start a gdb session
