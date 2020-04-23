@@ -100,9 +100,28 @@ def find_platform_type(regex, helper_type_name):
         raise NO_TYPE_ERROR("Too many matching types found ...\n{}".format("\n\t".join(lines)))
 
 def find_platform_std_string_type():
+    # follwoing method does not work until a live inferior process is available ... too bad !
+    # previous_std_str = "std::string"
+    # new_t_std_str = None
+    # count = 1
+    # while True:
+    #     print("Try {}".format(count))
+    #     if count > 10:
+    #         raise Exception("Could not find std::string type def in symbols after {} iterations of whatis. Currently known types {} and {}".format(i, t_std_str, new_t_std_str))
+    #     new_t_std_str = gdb.execute("whatis {}".format(previous_std_str), to_string=True)
+    #     print("got {}".format(new_t_std_str))
+    #     new_t_std_str = new_t_std_str.split("=")[-1].strip()
+    #     if new_t_std_str == previous_std_str:
+    #         break
+    #     else:
+    #         previous_std_str = new_t_std_str
+    #     count += 1
+    #     # what_is_what_is_std_string = gdb.execute("whatis {}".format(what_is_std_string))
+
     std_str_regex = "^std::__cxx.*::basic_string<char,.*>$" # platform/compilation dependant ?
     t = find_platform_type(std_str_regex, "std::string")
     return gdb.lookup_type(t)
+    # return gdb.lookup_type(new_t_std_str)
 
 
 def find_platform_json_type(nlohmann_json_type_prefix):
@@ -277,7 +296,9 @@ class LohmannJSONPrinter(object):
                 return "\n ===> Offsets for STD::MAP : [ FOUND ] <=== "
         print("MAGIC_OFFSET_STD_MAP_KEY should be {} (from symbols)".format(offset_key, size_of_node))
         print("MAGIC_OFFSET_STD_MAP_VAL should be {} (from symbols)".format(offset_val, STD_STRING.sizeof))
-        return "\n ===> Offsets for STD::MAP : [ NOT FOUND ] <=== "
+        print("\n ===> Offsets for STD::MAP : [ NOT FOUND ] <=== ")
+        sys.exit(-25)
+        gdb.execute("q -25")
 
 
     def parse_as_str(self):
@@ -328,7 +349,9 @@ class LohmannJSONPrinter(object):
                 except:
                     continue
         print('MAGIC_OFFSET_STD_VECTOR should be = {} (from symbols)'.format(element_size))
-        return " ===> Offsets for STD::VECTOR : [ NOT FOUND ] <=== "
+        print(" ===> Offsets for STD::VECTOR : [ NOT FOUND ] <=== ")
+        sys.exit(-620)
+        gdb.execute("q -620")
 
     def is_leaf(self):
         return self.field_type_short != "object" and self.field_type_short != "array"
