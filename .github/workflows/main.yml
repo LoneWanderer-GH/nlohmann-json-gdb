@@ -86,11 +86,11 @@ jobs:
         working-directory: ./tests/cpp_test_project
 
       - name: Prepare test test suite GDB script
-        run: echo -e "source checker.py\npython test_the_test_suite()" > test_test_suite.gdb
+        run: cat .gdbinit > test_test_suite.gdb && echo -e "source checker.py\npython test_the_test_suite()" >> test_test_suite.gdb && cat test_test_suite.gdb
         working-directory: ./tests/cpp_test_project
 
       - name: Prepare test suite GDB script
-        run: echo -e "source checker.py\npython test_suite()" > test_suite.gdb
+        run: cat .gdbinit >  test_suite.gdb && echo -e "source checker.py\npython test_suite()" >> test_suite.gdb && cat test_suite.gdb
         working-directory: ./tests/cpp_test_project
 
       # Runs a set of commands using the runners shell
