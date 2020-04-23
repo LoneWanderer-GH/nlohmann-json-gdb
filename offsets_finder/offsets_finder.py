@@ -50,6 +50,15 @@ PLATFORM_BITS = "64" if sys.maxsize > 2 ** 32 else "32"
 
 print("PLATFORM_BITS {}".format(PLATFORM_BITS))
 
+SEARCH_MIN = 4
+SEARCH_MAX = 96
+SEARCH_STEP = 4
+SEARCH_RANGE = range(SEARCH_MIN, SEARCH_MAX, SEARCH_STEP)
+
+print("")
+print("Search range will be:")
+print("MIN: {} - MAX: {} - STEP: {}".format(SEARCH_MIN,SEARCH_MAX, SEARCH_STEP))
+print("")
 
 """"""
 # GDB black magic
@@ -170,80 +179,57 @@ class LohmannJSONPrinter(object):
 
     def parse_as_object(self):
         assert (self.field_type_short == "object")
-
+        key = "first"
+        value = "second"
+        print("Expected pair: <key:{}, value:{}>".format(key, value))
         o = self.val["m_value"][self.field_type_short]
 
         # traversing tree is a an adapted copy pasta from STL gdb parser
         # (http://www.yolinux.com/TUTORIALS/src/dbinit_stl_views-1.03.txt and similar links)
-        first_node_offset = -1
-        node_count_offset = -1
-        offset_key = -1
-        offset_val = -1
-        for first_node_offset in range(1,256,1):
-            try:
-                tree_size = None
-                node = None
-                _M_t = std_stl_item_to_int_address(o.referenced_value().address)
-                _M_t_M_impl_M_header_M_left = _M_t + first_node_offset
-                for node_count_offset in range(1,256,1):
-                    try:
-                        _M_t_M_impl_M_node_count    = _M_t + first_node_offset + node_count_offset
-                        node = gdb.Value(long(_M_t_M_impl_M_header_M_left)).cast(STD_RB_TREE_NODE_TYPE).referenced_value()
-                        tree_size = gdb.Value(long(_M_t_M_impl_M_node_count)).cast(STD_RB_TREE_SIZE_TYPE).referenced_value()
 
-                        if tree_size != 1:
-                            continue
-                        else:
-                            # print("Correct tree size (=1)")
-                            # print("Testing _M_Impl._M_header._M_left offset {}".format(first_node_offset))
-                            # print("Testing _M_Impl._M_node_count offset {}".format(node_count_offset))
-                            key_found = False
+        node      = o["_M_t"]["_M_impl"]["_M_header"]["_M_left"]
+        tree_size = o["_M_t"]["_M_impl"]["_M_node_count"]
 
-                            for offset_key in range(1,256,1):
-                                try:
-                                    # print("Testing Node.Key {}".format(offset_key))
-                                    key_address = std_stl_item_to_int_address(node) + offset_key
-                                    k_str = parse_std_str_from_hexa_address(hex(key_address))
-                                    if "first" in k_str:
-                                        key_found = True
-                                        print("Found the key '{}'".format(k_str))
-                                        break
-                                except:
-                                    continue
-                            if not key_found:
-                                continue
+        i = 0
 
-                            value_found = False
-                            for offset_val in range(1,256,1):
-                                try:
-                                    # print("Testing Node.Value {}".format(offset_val))
-                                    value_address = key_address + offset_val
-                                    value_object = gdb.Value(long(value_address)).cast(NLOHMANN_JSON_TYPE)
-                                    v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
-                                    if "second" in v_str:
-                                        print("Found the value '{}'".format(v_str))
-                                        value_found = True
-                                        break
-                                except:
-                                    continue
-                            if not value_found:
-                                continue
-                            if key_found and value_found:
-                                print("\n\nOffsets for STD::MAP exploration are:\n")
-                                print("MAGIC_OFFSET_STD_MAP            = {}".format(first_node_offset))
-                                print("MAGIC_OFFSET_STD_MAP_NODE_COUNT = {}".format(node_count_offset))
-                                print("MAGIC_OFFSET_STD_MAP_KEY        = {}".format(offset_key))
-                                print("MAGIC_OFFSET_STD_MAP_VAL        = {}".format(offset_val))
-                                return "\n ===> Offsets for STD::MAP : [ FOUND ] <=== "
-                    except:
-                        continue
-            except:
-                continue
-            # print("Offsets for STD::MAP exploration incomplete with these values:")
-            # print("MAGIC_OFFSET_STD_MAP            = {}".format(first_node_offset))
-            # print("MAGIC_OFFSET_STD_MAP_NODE_COUNT = {}".format(node_count_offset))
-            # print("MAGIC_OFFSET_STD_MAP_KEY        = {}".format(offset_key))
-            # print("MAGIC_OFFSET_STD_MAP_VAL        = {}".format(offset_val))
+        if tree_size == 0:
+            return "{}"
+        else:
+            key_found = False
+            for offset_key in SEARCH_RANGE:
+                try:
+                    print("Testing Node.Key offset {}".format(offset_key))
+                    key_address = std_stl_item_to_int_address(node) + offset_key
+                    k_str = parse_std_str_from_hexa_address(hex(key_address))
+                    if key in k_str:
+                        key_found = True
+                        print("Found the key '{}'".format(k_str))
+                        break
+                except:
+                    continue
+            if not key_found:
+                return "No offset found for STD::MAP key (starting from RB node address)"
+
+            value_found = False
+            for offset_val in SEARCH_RANGE:
+                try:
+                    print("Testing Node.Value offset {}".format(offset_val))
+                    value_address = key_address + offset_val
+                    value_object = gdb.Value(long(value_address)).cast(NLOHMANN_JSON_TYPE)
+                    v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
+                    if value in v_str:
+                        print("Found the value '{}'".format(v_str))
+                        value_found = True
+                        break
+                except:
+                    continue
+            if not value_found:
+                return "No offset found for STD::MAP value (starting from RB key address)"
+            if key_found and value_found:
+                print("\n\nOffsets for STD::MAP <key,val> exploration from a given node are:\n")
+                print("MAGIC_OFFSET_STD_MAP_KEY        = {}".format(offset_key))
+                print("MAGIC_OFFSET_STD_MAP_VAL        = {}".format(offset_val))
+                return "\n ===> Offsets for STD::MAP : [ FOUND ] <=== "
         return "\n ===> Offsets for STD::MAP : [ NOT FOUND ] <=== "
 
 
@@ -262,22 +248,32 @@ class LohmannJSONPrinter(object):
 
     def parse_as_array(self):
         assert (self.field_type_short == "array")
+        expected_value ="996699FOO"
+        expected_index = 2
+        print("Trying to search array element {} at index ({})".format(expected_value, expected_index))
         o = self.val["m_value"][self.field_type_short]
         start = o["_M_impl"]["_M_start"]
         size = o["_M_impl"]["_M_finish"] - start
         # capacity = o["_M_impl"]["_M_end_of_storage"] - start
         # size_max = size - 1
-        i = 0
+        # test code has the interesting part at index 1 (2nd element)
+        # print("nb of array elements {}".format(size))
+
+        # start at expected index directly
+        i = expected_index
         start_address = std_stl_item_to_int_address(start)
         if size == 0:
-            pass
+            return "error with  std::vector"
         else:
-            for offset in range(1,256,1):
+            for offset in SEARCH_RANGE:
                 try:
-                    i_address = start_address + offset
+                    print("Testing vector value offset {}".format(offset))
+                    o = (i * offset)
+                    i_address = start_address + o
                     value_object = gdb.Value(long(i_address)).cast(NLOHMANN_JSON_TYPE)
                     v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
-                    if "25" in v_str:
+                    print("value: {}".format(v_str))
+                    if expected_value in v_str: # or "9966990055" in v_str:
                         print("\n\nOffsets for STD::VECTOR exploration are:\n")
                         print("MAGIC_OFFSET_STD_VECTOR = {}".format(offset))
                         return "\n ===> Offsets for STD::VECTOR : [ FOUND ] <=== "
