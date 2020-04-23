@@ -1,5 +1,7 @@
 # A simplistic GDB pretty printer for [nlohmann-json c++][3]
 
+![CI](https://github.com/LoneWanderer-GH/nlohmann-json-gdb/workflows/CI/badge.svg)
+
 Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3]
  - [x] compatible with a live inferior process and debug symbols
  - [x] compatible with core dump files with debug symbols
