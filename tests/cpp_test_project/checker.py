@@ -48,7 +48,7 @@ def check_result(results):
     status = True
     print_format = "{} {:<25} [{:^8s}]"
     for k, v in results.items():
-        keys_list = v.keys()
+        keys_list = list(v.keys())
         nb_jsons = len(keys_list)
         print_prefix = "Checking variable [{:02d}/{:02d}]: {:<15}".format(count, total_var_count, k)
         print("{} has {:02d} associated JSON{}".format(print_prefix, nb_jsons, "s" if nb_jsons > 1 else ""))
