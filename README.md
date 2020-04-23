@@ -1,4 +1,4 @@
-# A simplistic GDB pretty printer for [nlohmann-json c++][3] 
+# A simplistic GDB pretty printer for [nlohmann-json c++][3]
 
 Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3]
  - [x] compatible with a live inferior process and debug symbols
@@ -10,14 +10,14 @@ Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3
 ---
 
 **Table of contents**
- 
+
  1. [Prerequisites](#Prerequisites)
  2. [Installing](#Installing)
  3. [Content](#Content)
  4. [Usage](#Usage)
  5. [Possible improvements / Contributions](#Possible-improvements-Contributions)
  6. [Known limitations](#Known-limitations)
- 7. [Examples and tests](#Examples-Tests)  
+ 7. [Examples and tests](#Examples-Tests)
  8. [History](#History)
  9. [Acknowledgments / LICENSES](#Acknowledgments-LICENSES)
  10. [Links concerning STL and GDB](#Links)
@@ -28,7 +28,7 @@ Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3
  - *GDB 8.3* debugger installed, ready to use. Python support started with GDB 7, so it may work with versions starting GDB 7 _Some [GDB commands knowledge][4] might be useful for your debug session to be successful ;)_
  - an executable to debug **with debug symbols available to GDB** which uses the [JSON lib 3.7.3][3]
  - or a core dump **with debug symbols available to GDB** (for linux users)
- 
+
 
 ## Optional
 
@@ -36,7 +36,7 @@ Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3
 
 
 ## Compatibility
- 
+
  For the GDB command, it should work with other GDB versions that support commands and printf (GDB 7+).
 
  For the GDB Python pretty printer, it should work with any GDB version that supports python (provided no GDB api change, otherwise python code will be broken); i.e. GDB 7+. Be aware that the python code relies on some [JSON lib types definition][3], so JSON lib and python pretty printer code should be matching.
@@ -55,15 +55,15 @@ Have a look [here for an example of GDB build on raspbian 9.11](https://github.c
 
  - [x] the *[GDB command](gdb_script/simple_gdb_method.gdb)* : it uses the live process under debug to call `dump()`. It implies that the executable and memory are not corrupted, variables not optimized out
  - [x] the *[python GDB pretty printer](gdb_python_pretty_printer)* : here, we do not rely on the existing dump() method but we explore memory to do it ourselves, if the inferior process is broken in some way, we may still have some means to dump a json compare to previous method.
- 
-  - [x] a [sample c++ project](cpp_test_project), see [7. Examples / Tests](#7-Examples--Tests) for further details
-  
-  - [x] a [cpp project to bruteforcefully find relevant offets for a given platform](offsets_finder)
+
+  - [x] a [sample c++ project](tests/cpp_test_project), see [7. Examples / Tests](#7-Examples--Tests) for further details
+
+  - [x] a [cpp project to bruteforcefully find relevant offets for a given platform](tests/offsets_finder)
 
 <a name="Usage"></a>
 
 # 4. Usage
- 
+
 ## How to load a GDB script
 
 in your GDB console:
@@ -153,13 +153,17 @@ For more confidence, we could modify the python pretty printer to provide the ex
 
 ## The test project
 
-The C++ project [debug_printer.gpr](cpp_test_project/debug_printer.gpr) can be built with the following command
-`gprbuild -p -P debug_printer.gpr`
-(`-p`creates the obj/exe dirs if missing)
+The C++ project [debug_printer.gpr](tests/cpp_test_project/debug_printer.gpr) can be built with the following command
 
- see [main.cpp](cpp_test_project/src/main.cpp) for some basic C++ JSON declarations.
+```
+gprbuild -p -P debug_printer.gpr
+```
 
- example:
+_(`-p`creates the obj/exe dirs if missing)_
+
+ see [main.cpp](tests/cpp_test_project/src/main.cpp) for some basic C++ JSON declarations.
+It should looke like:
+
 ```
 // C++ code
 ...
@@ -175,17 +179,16 @@ foo["array"] = { 1, 0, 2 };
 ...
 ```
 
-Once the project is loaded, launch a GDB session.
+Once the exe is built, launch a GDB session.
 2 cases :
 
  - GDB autoloads the `.gdbinit` file located near the gpr file
  - GDb does not autoload the `.gdbinit` file. In this case type in gdb:
- 
-     ```
-     (gdb) source .gdbinit
-     ```
-     
- GDB commands (once everything correctly loaded)
+    ```
+    (gdb) source .gdbinit
+    ```
+
+Now you can use the following GDB commands:
 
 ```
 (gdb) pjson foo
@@ -207,7 +210,7 @@ Once the project is loaded, launch a GDB session.
 }
 ```
 
- GDB python pretty printer:
+GDB python pretty printer:
 
 ```
  (gdb) p foo
@@ -229,9 +232,11 @@ Once the project is loaded, launch a GDB session.
 }
 ```
 
-## Awful bruteforce method to find the relevant offsets
+## Awful bruteforce method to check offsets
 
- 1. build the project [simple_offsets_finder.gpr](offsets_finder/simple_offsets_finder.gpr) with the command
+This part will tell if the method to find data offsets in the proposed python script is correct.
+
+ 1. build the project [simple_offsets_finder.gpr](tests/offsets_finder/simple_offsets_finder.gpr) with the command
         `gprbuild -p -P debug_printer.gpr`
 
  2. Start a GDB session, here is an example on Raspberry Pi 3+ (arm32):
@@ -266,23 +271,23 @@ MAGIC_OFFSET_STD_MAP_NODE_COUNT = 12
 MAGIC_OFFSET_STD_MAP_KEY        = 16
 MAGIC_OFFSET_STD_MAP_VAL        = 24
 
- ===> Offsets for STD::MAP : [ FOUND ] <=== 
+ ===> Offsets for STD::MAP : [ FOUND ] <===
 
 #
-$2 = 
+$2 =
 
 Offsets for STD::VECTOR exploration are:
 
 MAGIC_OFFSET_STD_VECTOR = 76
 
- ===> Offsets for STD::VECTOR : [ FOUND ] <=== 
+ ===> Offsets for STD::VECTOR : [ FOUND ] <===
 ```
 
 ## Another approach I know of
  _from a guru of my workplace_
   - simply define a single function in the program to perform the dump of a json variable, say `print()`. Then you can call it during yourGDBsession.
   This is almost exactly similar to theGDBinferior dump() call macro `pjson` presented above.
-  
+
 <a name="History"></a>
 # 8. History
 
@@ -311,7 +316,7 @@ My work is under following license
 > Copyright (c) 2020 LoneWanderer-GH https://github.com/LoneWanderer-GH
 >
 >Permission is hereby  granted, free of charge, to any  person obtaining a copy of this software and associated  documentation files (the "Software"), to deal in the Software  without restriction, including without  limitation the rights to  use, copy,  modify, merge,  publish, distribute,  sublicense, and/or  sell copies  of  the Software,  and  to  permit persons  to  whom  the Software  is furnished to do so, subject to the following conditions:
-> 
+>
 > The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 >
 > THE SOFTWARE  IS PROVIDED "AS  IS", WITHOUT WARRANTY  OF ANY KIND,  EXPRESS OR IMPLIED,  INCLUDING BUT  NOT  LIMITED TO  THE  WARRANTIES OF  MERCHANTABILITY, FITNESS FOR  A PARTICULAR PURPOSE AND  NONINFRINGEMENT. IN NO EVENT  SHALL THE AUTHORS  OR COPYRIGHT  HOLDERS  BE  LIABLE FOR  ANY  CLAIM,  DAMAGES OR  OTHER LIABILITY, WHETHER IN AN ACTION OF  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

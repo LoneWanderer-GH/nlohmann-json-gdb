@@ -6,7 +6,7 @@ set print pretty
 # load the simple gdb method requiring a live inferior process
 echo #\n
 echo # Loading simple gdb json dump method\n
-cd ../gdb_script/
+cd ../../gdb_script/
 source simple_gdb_method.gdb
 
 
@@ -17,7 +17,7 @@ cd ../gdb_python_pretty_printer
 source load_pretty_printer.gdb
 
 # go back to where we started
-cd ../cpp_test_project
+cd ../tests/cpp_test_project
 #
 echo #\n
 echo # Auto setting break point before exe prints mixed_nested\n
