@@ -30,7 +30,7 @@ using json = nlohmann::json;
 
 int main() {
 
-  json simple_array = {"25"};
+  json simple_array = {"azd", 25, "996699FOO"};
 
   json simple_json;
   simple_json["first"] = "second";

@@ -1,7 +1,17 @@
-*/exe/**
-*/obj/**
+# temp GPS files weirdness
+**/**/.#*.*#
+
+# ignore dirs
+**/exe/**
+**/obj/**
 **/.idea/**
 
+# obsolete arborescence
+**/gdb_python_pretty_printer/**
+**/gdb_script/**
 #gdb_python_pretty_printer/.idea/
 
-gdb_python_pretty_printer/proto.py
+# some stuff that sits at home
+**/**/proto.py
+assets/captures/
+**/**/prout.py
