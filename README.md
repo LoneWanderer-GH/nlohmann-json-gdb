@@ -1,4 +1,4 @@
-# A simplistic GDB pretty printer for [nlohmann-json c++][3] 
+# A simplistic GDB pretty printer for [nlohmann-json c++][3]
 
 Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3]
  - [x] compatible with a live inferior process and debug symbols
@@ -6,18 +6,19 @@ Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3
  - Tested on:
    - Win Intel x64
    - Raspbian arm x32
+   - Ubuntu x64 (Github CI)
 
 ---
 
 **Table of contents**
- 
+
  1. [Prerequisites](#Prerequisites)
  2. [Installing](#Installing)
  3. [Content](#Content)
  4. [Usage](#Usage)
  5. [Possible improvements / Contributions](#Possible-improvements-Contributions)
  6. [Known limitations](#Known-limitations)
- 7. [Examples and tests](#Examples-Tests)  
+ 7. [Examples and tests](#Examples-Tests)
  8. [History](#History)
  9. [Acknowledgments / LICENSES](#Acknowledgments-LICENSES)
  10. [Links concerning STL and GDB](#Links)
@@ -25,21 +26,24 @@ Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3
 <a name="Prerequisites"></a>
 # 1. Prerequisites
 
- - *GDB 8.3* debugger installed, ready to use. Python support started with GDB 7, so it may work with versions starting GDB 7 _Some [GDB commands knowledge][4] might be useful for your debug session to be successful ;)_
+ - *GDB 8.3* debugger installed, ready to use.
+     Python support started with GDB 7, so it may work with versions starting GDB 7
  - an executable to debug **with debug symbols available to GDB** which uses the [JSON lib 3.7.3][3]
  - or a core dump **with debug symbols available to GDB** (for linux users)
- 
+ - _Some [GDB commands knowledge][4] might be useful for your debug session to be successful ;)_
+
+
+## Your GDB does not support python ?
+
+You need to upgrade your GDB.
+
+Have a look [on this wiki page](https://github.com/LoneWanderer-GH/nlohmann-json-gdb/wiki/C---build-environment-:-GDB-8.3-on-Raspberry-Pi-3--Raspbian-9.11-stretch) for an example of GDB build on raspbian 9.11
+
 
 ## Optional
 
  - a [GNAT CE 2019][2] install to compile and play with the provided test projects
 
-
-## Compatibility
- 
- For the GDB command, it should work with other GDB versions that support commands and printf (GDB 7+).
-
- For the GDB Python pretty printer, it should work with any GDB version that supports python (provided no GDB api change, otherwise python code will be broken); i.e. GDB 7+. Be aware that the python code relies on some [JSON lib types definition][3], so JSON lib and python pretty printer code should be matching.
 
 <a name="Installing"></a>
 # 2. Installing
@@ -47,23 +51,21 @@ Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3
 Just copy the GDB and/or python script you need in a folder near your executable to debug, and of course, load it into your GDB.
 See [Content](#Content) and [Usage](#Usage) sections below for more details.
 
-Your GDB does not support python ?
-Have a look [here for an example of GDB build on raspbian 9.11](https://github.com/LoneWanderer-GH/nlohmann-json-gdb/wiki/C---build-environment-:-GDB-8.3-on-Raspberry-Pi-3--Raspbian-9.11-stretch)
-
 <a name="Content"></a>
 # 3. Content
 
- - [x] the *[GDB command](gdb_script/simple_gdb_method.gdb)* : it uses the live process under debug to call `dump()`. It implies that the executable and memory are not corrupted, variables not optimized out
- - [x] the *[python GDB pretty printer](gdb_python_pretty_printer)* : here, we do not rely on the existing dump() method but we explore memory to do it ourselves, if the inferior process is broken in some way, we may still have some means to dump a json compare to previous method.
- 
-  - [x] a [sample c++ project](cpp_test_project), see [7. Examples / Tests](#7-Examples--Tests) for further details
-  
-  - [x] a [cpp project to bruteforcefully find relevant offets for a given platform](offsets_finder)
+ - [x] the *[GDB command file](scripts/nlohmann_json.gdb)* : it uses the live process under debug to call `dump()`. It implies that the executable and memory are not corrupted, variables not optimized out
+ - [x] the *[GDB python pretty printer file](scripts/nlohmann_json.py)* : here, we do not rely on the existing dump() method but we explore memory using debug symbols to do it ourselves, if the inferior process is broken in some way, we may still have some means to dump a json compare to previous method.
+
+ Additional content:
+  - [x] some tests projects, see [7. Examples / Tests](#7-Examples--Tests) for further details:
+    - a [c++ test project](tests/cpp_test_project)
+    - a [c++ test project to bruteforcefully find relevant offets for a given platform](tests/offsets_finder)
 
 <a name="Usage"></a>
 
 # 4. Usage
- 
+
 ## How to load a GDB script
 
 in your GDB console:
@@ -75,13 +77,18 @@ I strongly suggest you refer to GDB documentation.
 
 ## GDB pretty printer usage (the Python printer)
 
-The GDB Pretty printer is [written in Python](gdb_python_pretty_printer/printer.py) which is loaded with a [GDB script](gdb_python_pretty_printer/load_pretty_printer.gdb)
+The GDB Pretty printer is [written in Python](scripts/nlohmann_json.py).
+
+To load it into GDB (you may adapt path to your settings):
+```
+(gdb) source nlohmann_json.py
+```
 
 Then, a simple GDB command does the trick:
 
 ```
 (gdb) p foo
-{
+$ 1 = {
     "flex" : 0.2,
     "awesome_str": "bleh",
     "nested": {
@@ -92,7 +99,12 @@ Then, a simple GDB command does the trick:
 
 ## GDB script usage (the GDB command)
 
-Here we use a kind of **GDB macro** defined in a [GDB script file](gdb_script/simple_gdb_method.gdb)
+Here we use a kind of **GDB macro** defined in a [GDB script file](scripts/nlohmann_json.gdb)
+
+To load it into GDB (you may adapt path to your settings):
+```
+(gdb) source nlohmann_json.gdb
+```
 
 ```
 (gdb) pjson foo
@@ -104,6 +116,7 @@ Here we use a kind of **GDB macro** defined in a [GDB script file](gdb_script/si
     }
 }
 ```
+_notice that `pjson` does not print the GDB history tag $_
 
 ## No debug symbols ?
 
@@ -129,160 +142,267 @@ Any seasoned advice and support appreciated. Aspects I would like to improve:_
  - [x] ~~the pythonGDBpretty printer core dump management is not (yet ?) done (i.e. core dump means no inferior process to call dump() in any way, and possibly less/no (debug) symbols to rely on)~~ Core dump with debug symbols tested and should be working.
  - [ ] printer can be customised further to print the 0x addresses, I chose not to since the whole point for me was NOT to explore them in GDB. You would have to add few python `print` here and there
  - [ ] add the hexa value for floating point numbers, or for all numerical values
- - [ ] GDB offers a [command to perform the same task in a probably more convenient way](https://stackoverflow.com/questions/1768620/how-do-i-show-what-fields-a-struct-has-in-gdb)(see [docs](https://sourceware.org/gdb/current/onlinedocs/gdb/Symbols.html#Symbols), I discovered that a bit late :D)
-        ```
-        ptype
-        ptype /o struct my_struct
-        ```
+ - [ ] Improve method to get `std::string` `type` and `sizeof`. The current method assumes some known symbols names, that most probably depends on the compilation tools (C++11).
+     Sadly, GDB command `whatis` and `ptype` cannot resolve directly and easily `std::string`
 
 
 <a name="Known-limitations"></a>
 # 6. Known limitations
 
  - Floating point numbers may appear differently depending on the method used. This is due to differences in float-to-string from [GDB][4] and [json c++][3].
-For more confidence, we could modify the python pretty printer to provide the exact hexadecimal memory value + the decimal one for sake of completness.
+    For more confidence, we could modify the python pretty printer to provide the exact hexadecimal memory value + the decimal one for sake of completness.
+    However, the checks using python `json` module show no difference concerning floats once parsed.
 
- - Linux over windows exe build : `gprbuild` command on Ubuntu-windows/Debian-windows may not work correctly, so a legit Linux environment may be needed if you want to play with this on Linux.
-
- - other platforms : feel free to find other platform offsets, or provide a better programmatic method to navigate into the memory.
+ - Linux over windows (Ubuntun-windows) : `gprbuild` command on Ubuntu-windows/Debian-windows may not work correctly, so a legit Linux environment may be needed if you want to play with the tests projects on Linux.
 
 
 <a name="Examples-Tests"></a>
 # 7. Examples and tests
 
 
-## The test project
+## Sample C++ project
 
-The C++ project [debug_printer.gpr](cpp_test_project/debug_printer.gpr) can be built with the following command
-`gprbuild -p -P debug_printer.gpr`
-(`-p`creates the obj/exe dirs if missing)
+The C++ project is located in `tests/cpp_test_project`
 
- see [main.cpp](cpp_test_project/src/main.cpp) for some basic C++ JSON declarations.
+ 1. Build [debug_printer.gpr](tests/cpp_test_project/debug_printer.gpr) with the following command
 
- example:
-```
-// C++ code
-...
-json foo;
-foo["flex"] = 0.2;
-foo["bool"] = true;
-foo["int"] = 5;
-foo["float"] = 5.22;
-foo["trap "] = "you fell";
-foo["awesome_str"] = "bleh";
-foo["nested"] = {{"bar", "barz"}};
-foo["array"] = { 1, 0, 2 };
-...
-```
+    ```
+    cd tests/cpp_test_project
+    gprbuild -p
+    ```
 
-Once the project is loaded, launch a GDB session.
-2 cases :
+    _(`-p`creates the obj/exe dirs if missing; gpr file can be deduced from current folder content)_
 
- - GDB autoloads the `.gdbinit` file located near the gpr file
- - GDb does not autoload the `.gdbinit` file. In this case type in gdb:
- 
-     ```
-     (gdb) source .gdbinit
-     ```
-     
- GDB commands (once everything correctly loaded)
+ 2. see [main.cpp](tests/cpp_test_project/src/main.cpp) for some basic C++ JSON declarations.
+    It should looke like:
 
-```
-(gdb) pjson foo
-{
-    "array": [
-        1,
-        0,
-        2
-    ],
-    "awesome_str": "bleh",
-    "bool": true,
-    "flex": 0.2,
-    "float": 5.22,
-    "int": 5,
-    "nested": {
-        "bar": "barz"
-    },
-    "trap ": "you fell"
-}
-```
+    ```
+    // C++ code
+    ...
+    json foo;
+    foo["flex"] = 0.2;
+    foo["bool"] = true;
+    foo["int"] = 5;
+    foo["float"] = 5.22;
+    foo["trap "] = "you fell";
+    foo["awesome_str"] = "bleh";
+    foo["nested"] = {{"bar", "barz"}};
+    foo["array"] = { 1, 0, 2 };
+    ...
+    ```
 
- GDB python pretty printer:
+ 3. Once the exe is built, launch a GDB session, either in console or using your favorite IDE.
 
-```
- (gdb) p foo
- {
-    "array" : [
+    2 cases :
+
+     - GDB autoloads the `.gdbinit` file located near the gpr file
+     - GDb does not autoload the `.gdbinit` file. In this case type in gdb:
+        ```
+        (gdb) source .gdbinit
+        ```
+
+ 4. Now you can use the following GDB commands:
+
+    ```
+    (gdb) pjson foo
+    {
+        "array": [
             1,
             0,
-            2,
-    ],
-    "awesome_str" : "bleh",
-    "bool" : true,
-    "flex" : 0.20000000000000001,
-    "float" : 5.2199999999999998,
-    "int" : 5,
-    "nested" : {
-            "bar" : "barz"
-    },
-    "trap " : "you fell",
-}
-```
+            2
+        ],
+        "awesome_str": "bleh",
+        "bool": true,
+        "flex": 0.2,
+        "float": 5.22,
+        "int": 5,
+        "nested": {
+            "bar": "barz"
+        },
+        "trap ": "you fell"
+    }
+    ```
 
-## Awful bruteforce method to find the relevant offsets
+    GDB python pretty printer:
 
- 1. build the project [simple_offsets_finder.gpr](offsets_finder/simple_offsets_finder.gpr) with the command
+    ```
+     (gdb) p foo
+     {
+        "array" : [
+                1,
+                0,
+                2,
+        ],
+        "awesome_str" : "bleh",
+        "bool" : true,
+        "flex" : 0.20000000000000001,
+        "float" : 5.2199999999999998,
+        "int" : 5,
+        "nested" : {
+                "bar" : "barz"
+        },
+        "trap " : "you fell",
+    }
+    ```
+
+## C++ project: awful bruteforce method to check that memory offsets are correct
+
+This part will tell if the method to find data offsets in the proposed python script is correct.
+
+ 1. build the project [simple_offsets_finder.gpr](tests/offsets_finder/simple_offsets_finder.gpr) with the command
         `gprbuild -p -P debug_printer.gpr`
 
- 2. Start a GDB session, here is an example on Raspberry Pi 3+ (arm32):
+ 2. Start a GDB session, here is an console output example, using this console command to launch GDB:
 
-```
-(gdb) file offsets_finder/exe/main  ## you may change the path to fit your folder tree
-Reading symbols from offsets_finder/exe/main...
-No breakpoints or watchpoints.
-(gdb) source offsets_finder/find_offsets.gdb
-#
-# Force gdb to use pretty print of structures managed by default (instead of a barely flat line)
-PLATFORM_BITS 32
-#
-# Auto setting break point before exe prints mixed_nested
-Breakpoint 1 at 0x11c8c: file offsets_finder/src/main.cpp, line 44.
-#
-# Running the exe
+     ```
+     gdb --se=exe/main.exe -command=find_offsets.gdb --batch
+     ```
+    <details>
+    ```
+    #
+    # Force gdb to use pretty print of structures managed by default (instead of a barely flat line)
+    #
+    # set print pretty
+    #
+    #
+    # load the offset finder python gdb script
+    #
+    source offsets_finder.py
+    #
+    PLATFORM_BITS 64
 
-Breakpoint 1, main () at offsets_finder/src/main.cpp:44
-#
-# ### Prints using python pretty printer offsetts finder ###
-#
-# Print foo (python pretty printer)
-$1 = Found the key '"first"'
-Found the value '"second"'
+    Search range will be:
+    MIN: 2 - MAX: 512 - STEP: 2
 
 
-Offsets for STD::MAP exploration are:
+    -------------The researched std::string type for this executable is-------------
+    std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >-
+    Using regex: ^std::__cxx.*::basic_string<char,.*>$
+    --------------------------------------------------------------------------------
 
-MAGIC_OFFSET_STD_MAP            = 8
-MAGIC_OFFSET_STD_MAP_NODE_COUNT = 12
-MAGIC_OFFSET_STD_MAP_KEY        = 16
-MAGIC_OFFSET_STD_MAP_VAL        = 24
 
- ===> Offsets for STD::MAP : [ FOUND ] <=== 
+    --------The researched nlohmann::basic_json type for this executable is---------
+    nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, long long, unsigned long long, double, std::allocator, nlohmann::adl_serializer>
+    Using regex: ^nlohmann::basic_json<.*>$
+    --------------------------------------------------------------------------------
 
-#
-$2 = 
+    #
+    # Auto setting break point before exe prints mixed_nested
+    #
+    Breakpoint 1 at 0x401753: file F:\DEV\Projets\nlohmann-json-gdb\offsets_finder\src\main.cpp, line 44.
+    #
+    # Running the exe
+       THIS
+        IS
+       THE
+       END
+      (ABC)
+       MY
 
-Offsets for STD::VECTOR exploration are:
+    Breakpoint 1, main () at F:\DEV\Projets\nlohmann-json-gdb\offsets_finder\src\main.cpp:44
+    44      F:\DEV\Projets\nlohmann-json-gdb\offsets_finder\src\main.cpp: No such file or directory.
+    $1 = (nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, long long, unsigned long long, double, std::allocator, nlohmann::adl_serializer>::object_t *) 0x1104b90
+    #
+    # ### Prints using python pretty printer offsetts finder ###
+    #
+    # Print simple_json (python pretty printer)
+    $2 = Expected pair: <key:first, value:second>
+    Testing Node.Key offset 2
+    Testing Node.Key offset 4
+    Testing Node.Key offset 6
+    Testing Node.Key offset 8
+    Testing Node.Key offset 10
+    Testing Node.Key offset 12
+    Testing Node.Key offset 14
+    Testing Node.Key offset 16
+    Testing Node.Key offset 18
+    Testing Node.Key offset 20
+    Testing Node.Key offset 22
+    Testing Node.Key offset 24
+    Testing Node.Key offset 26
+    Testing Node.Key offset 28
+    Testing Node.Key offset 30
+    Testing Node.Key offset 32
+    Found the key '"first"'
+    Testing Node.Value offset 2
+    Testing Node.Value offset 4
+    Testing Node.Value offset 6
+    Testing Node.Value offset 8
+    Testing Node.Value offset 10
+    Testing Node.Value offset 12
+    Testing Node.Value offset 14
+    Testing Node.Value offset 16
+    Testing Node.Value offset 18
+    Testing Node.Value offset 20
+    Testing Node.Value offset 22
+    Testing Node.Value offset 24
+    Testing Node.Value offset 26
+    Testing Node.Value offset 28
+    Testing Node.Value offset 30
+    Testing Node.Value offset 32
+    Found the value '"second"'
 
-MAGIC_OFFSET_STD_VECTOR = 76
 
- ===> Offsets for STD::VECTOR : [ FOUND ] <=== 
-```
+    Offsets for STD::MAP <key,val> exploration from a given node are:
+
+    MAGIC_OFFSET_STD_MAP_KEY        = 32 = expected value from symbols 32
+    MAGIC_OFFSET_STD_MAP_VAL        = 32 = expected value from symbols 32
+
+     ===> Offsets for STD::MAP : [ FOUND ] <===
+
+
+
+    #
+    # Print simple_array (python pretty printer)
+    #
+    $3 = Trying to search array element 996699FOO at index (2)
+    Testing vector value offset 2
+    value: Not a valid JSON type, continuing
+    Testing vector value offset 4
+    value: Not a valid JSON type, continuing
+    Testing vector value offset 6
+    value: null
+    Testing vector value offset 8
+    value: 25
+    Testing vector value offset 10
+    value: Not a valid JSON type, continuing
+    Testing vector value offset 12
+    value: Not a valid JSON type, continuing
+    Testing vector value offset 14
+    value: null
+    Testing vector value offset 16
+    value: "996699FOO"
+
+
+    Offsets for STD::VECTOR exploration are:
+
+    MAGIC_OFFSET_STD_VECTOR = 16
+    OFFSET expected value   = 16 (o["_M_impl"]["_M_start"], vector element size)
+
+     ===> Offsets for STD::VECTOR : [ FOUND ] <===
+
+
+
+
+
+    ############ FORCING A NORMAL EXIT (code 0) ############
+
+    Errors in python should have triggered a different exit code earlier
+
+    A debugging session is active.
+
+            Inferior 1 [process 1320] will be killed.
+
+    Quit anyway? (y or n) [answered Y; input not from terminal]
+
+    ```
+    </details>
 
 ## Another approach I know of
  _from a guru of my workplace_
   - simply define a single function in the program to perform the dump of a json variable, say `print()`. Then you can call it during yourGDBsession.
   This is almost exactly similar to theGDBinferior dump() call macro `pjson` presented above.
-  
+
 <a name="History"></a>
 # 8. History
 
@@ -311,7 +431,7 @@ My work is under following license
 > Copyright (c) 2020 LoneWanderer-GH https://github.com/LoneWanderer-GH
 >
 >Permission is hereby  granted, free of charge, to any  person obtaining a copy of this software and associated  documentation files (the "Software"), to deal in the Software  without restriction, including without  limitation the rights to  use, copy,  modify, merge,  publish, distribute,  sublicense, and/or  sell copies  of  the Software,  and  to  permit persons  to  whom  the Software  is furnished to do so, subject to the following conditions:
-> 
+>
 > The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 >
 > THE SOFTWARE  IS PROVIDED "AS  IS", WITHOUT WARRANTY  OF ANY KIND,  EXPRESS OR IMPLIED,  INCLUDING BUT  NOT  LIMITED TO  THE  WARRANTIES OF  MERCHANTABILITY, FITNESS FOR  A PARTICULAR PURPOSE AND  NONINFRINGEMENT. IN NO EVENT  SHALL THE AUTHORS  OR COPYRIGHT  HOLDERS  BE  LIABLE FOR  ANY  CLAIM,  DAMAGES OR  OTHER LIABILITY, WHETHER IN AN ACTION OF  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

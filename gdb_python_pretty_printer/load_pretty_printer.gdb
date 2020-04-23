@@ -27,11 +27,7 @@
 echo # Loading python script\n
 source printer.py
 
-
-
-# perform registration using GDB
-
-# it can be done inside the python script depending on some gdb python autoload config
-
-# echo # Registering python pretty printer \n
+# the python script registers the pretty printer once loaded
+# so no need of following line
+#
 # python gdb.printing.register_pretty_printer(gdb.current_objfile(), build_pretty_printer())
