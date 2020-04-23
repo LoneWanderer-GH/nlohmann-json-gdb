@@ -19,7 +19,7 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    - name: Install relevant packets: gnat, texinfo, gdb, gprbuild
+    - name: Install relevant packets gnat, texinfo, gdb, gprbuild
       run: sudo apt-get install gnat texinfo gdb gprbuild
 
     - name: Locate GDB version
@@ -56,7 +56,7 @@ jobs:
   build-and-execute-test-suite:
     runs-on: ubuntu-latest
     steps:
-      - name: Install relevant packets: gnat, texinfo, gdb, gprbuild
+      - name: Install relevant packets gnat, texinfo, gdb, gprbuild
         run: sudo apt-get install gnat texinfo gdb gprbuild
 
       - name: Locate GDB version
@@ -88,7 +88,7 @@ jobs:
       - name: Prepare test test suite GDB script
         run: echo -e "source checker.py\npython test_the_test_suite()" > test_test_suite.gdb
         working-directory: ./tests/cpp_test_project
-    
+
       - name: Prepare test suite GDB script
         run: echo -e "source checker.py\npython test_suite()" > test_suite.gdb
         working-directory: ./tests/cpp_test_project
@@ -97,7 +97,7 @@ jobs:
       - name: PERFORM GDB [TEST THE TEST SUITE]
         run: gdb --se=./exe/main --command=test_test_suite.gdb --batch
         working-directory: ./tests/cpp_test_project
-        
+
       - name: PERFORM GDB [TEST SUITE]
         run: gdb --se=./exe/main --command=test_suite.gdb --batch
         working-directory: ./tests/cpp_test_project
