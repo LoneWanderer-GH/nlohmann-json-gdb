@@ -234,7 +234,7 @@ class LohmannJSONPrinter(object):
         tree_size = o["_M_t"]["_M_impl"]["_M_node_count"]
 
         size_of_node = o["_M_t"]["_M_impl"]["_M_header"]["_M_left"].referenced_value().type.sizeof
-        
+
         i = 0
 
         if tree_size == 0:
@@ -275,6 +275,8 @@ class LohmannJSONPrinter(object):
                 print("MAGIC_OFFSET_STD_MAP_KEY        = {} (expected value from symbols {})".format(offset_key, size_of_node))
                 print("MAGIC_OFFSET_STD_MAP_VAL        = {} (expected value from symbols {})".format(offset_val, STD_STRING.sizeof))
                 return "\n ===> Offsets for STD::MAP : [ FOUND ] <=== "
+        print("MAGIC_OFFSET_STD_MAP_KEY should be {} (from symbols)".format(offset_key, size_of_node))
+        print("MAGIC_OFFSET_STD_MAP_VAL should be {} (from symbols)".format(offset_val, STD_STRING.sizeof))
         return "\n ===> Offsets for STD::MAP : [ NOT FOUND ] <=== "
 
 
@@ -325,6 +327,7 @@ class LohmannJSONPrinter(object):
                         return "\n ===> Offsets for STD::VECTOR : [ FOUND ] <=== "
                 except:
                     continue
+        print('MAGIC_OFFSET_STD_VECTOR should be = {} (from symbols)'.format(element_size))
         return " ===> Offsets for STD::VECTOR : [ NOT FOUND ] <=== "
 
     def is_leaf(self):
