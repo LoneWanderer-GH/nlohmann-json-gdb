@@ -115,28 +115,59 @@ def find_lohmann_types():
         raise NO_ENUM_TYPE_ERROR()
     return nlohmann_json_type_namespace, NLOHMANN_JSON_TYPE, enum_json_detail
 
+def get_fields_offset_from_type(str_type):
+    gdb_type = gdb.lookup_type(str_type)
+    s = gdb.execute("ptype /o {}".format(gdb_type), to_string=True)
+    lines = s.splitlines()
+    field_names = [f.name for f in gdb_type.fields()]
+    fields_offsets = dict()
+
+    # structure to read
+    # /* offset    |  size */  type = struct std::_Rb_tree_node_base {
+    # /*    0      |     4 */    std::_Rb_tree_color _M_color;
+    # /* XXX  4-byte hole */
+    # /*    8      |     8 */    _Base_ptr _M_parent;
+    # /*   16      |     8 */    _Base_ptr _M_left;
+    # /*   24      |     8 */    _Base_ptr _M_right;
+    # /**/
+    #                            /* total size (bytes):   32 */
+    #                          }
+    matcher = re.compile("\/\*\s+(\d+).*")
+    for l in lines:
+        for field in field_names:
+            if field in l:
+                match = matcher.match(l)# re.split("\|", l)[0].
+                field_offset = int(match.group(1))
+                fields_offsets[field] = field_offset
+                # print("Found offset {:02d} for {}".format(field_offset, field))
+                break # break the loop over fields names, go next line
+            else:
+                continue
+    return fields_offsets
+
 def find_rb_tree_types():
     try:
+        std_rb_header_offsets = get_fields_offset_from_type("std::_Rb_tree_node_base")
         std_rb_tree_node_type = gdb.lookup_type("std::_Rb_tree_node_base::_Base_ptr").pointer()
         std_rb_tree_size_type = gdb.lookup_type("std::size_t").pointer()
-        return std_rb_tree_node_type, std_rb_tree_size_type
+        return std_rb_tree_node_type, std_rb_tree_size_type, std_rb_header_offsets
     except:
         raise NO_RB_TREE_TYPES_ERROR()
 
 ## SET GLOBAL VARIABLES
 try:
     NLOHMANN_JSON_TYPE_NAMESPACE, NLOHMANN_JSON_TYPE, ENUM_JSON_DETAIL = find_lohmann_types()
-    STD_RB_TREE_NODE_TYPE, STD_RB_TREE_SIZE_TYPE = find_rb_tree_types()
+    STD_RB_TREE_NODE_TYPE, STD_RB_TREE_SIZE_TYPE, STD_RB_HEADER_OFFSETS = find_rb_tree_types()
 except NO_JSON_TYPE_ERROR:
     print("FATAL ERROR {}".format(ERROR_NO_CORRECT_JSON_TYPE_FOUND))
     print("FATAL ERROR {}".format(ERROR_NO_CORRECT_JSON_TYPE_FOUND))
     print("FATAL ERROR {}: missing JSON type definition, could not find the JSON type starting with {}".format(NLOHMANN_JSON_TYPE_PREFIX))
-    gdb.execute_command("q {}".format(ERROR_NO_CORRECT_JSON_TYPE_FOUND))
+    gdb.execute("q {}".format(ERROR_NO_CORRECT_JSON_TYPE_FOUND))
 except NO_RB_TREE_TYPES_ERROR:
     print("FATAL ERROR {}".format(ERROR_NO_RB_TYPES_FOUND))
     print("FATAL ERROR {}".format(ERROR_NO_RB_TYPES_FOUND))
     print("FATAL ERROR {}: missing some STL RB tree types definition")
-    gdb.execute_command("q {}".format(ERROR_NO_RB_TYPES_FOUND))
+    gdb.execute("q {}".format(ERROR_NO_RB_TYPES_FOUND))
 
 
 ENUM_LITERAL_NAMESPACE_TO_LITERAL = dict([ (f.name, f.name.split("::")[-1]) for f in ENUM_JSON_DETAIL])
