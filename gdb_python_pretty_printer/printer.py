@@ -239,7 +239,7 @@ class LohmannJSONPrinter(object):
                 k_str = parse_std_str_from_hexa_address(hex(key_address))
 
                 value_address = key_address + STD_STRING.sizeof
-                value_object = gdb.Value(long(value_address)).cast(NLOHMANN_JSON_TYPE)
+                value_object = gdb.Value(value_address).cast(NLOHMANN_JSON_TYPE)
 
                 v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
 
@@ -297,7 +297,7 @@ class LohmannJSONPrinter(object):
             while i < size:
                 offset = i * element_size
                 i_address = start_address + offset
-                value_object = gdb.Value(long(i_address)).cast(NLOHMANN_JSON_TYPE)
+                value_object = gdb.Value(i_address).cast(NLOHMANN_JSON_TYPE)
                 v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
                 end_of_line = "\n" if size <= 1 or i == size else ",\n"
                 s = s + (" " * (self.indent_level * INDENT)) + v_str + end_of_line

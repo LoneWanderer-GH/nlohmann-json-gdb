@@ -260,7 +260,7 @@ class LohmannJSONPrinter(object):
                 try:
                     print("Testing Node.Value offset {}".format(offset_val))
                     value_address = key_address + offset_val
-                    value_object = gdb.Value(long(value_address)).cast(NLOHMANN_JSON_TYPE)
+                    value_object = gdb.Value(value_address).cast(NLOHMANN_JSON_TYPE)
                     v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
                     if value in v_str:
                         print("Found the value '{}'".format(v_str))
@@ -317,7 +317,7 @@ class LohmannJSONPrinter(object):
                     print("Testing vector value offset {}".format(offset))
                     o = (i * offset)
                     i_address = start_address + o
-                    value_object = gdb.Value(long(i_address)).cast(NLOHMANN_JSON_TYPE)
+                    value_object = gdb.Value(i_address).cast(NLOHMANN_JSON_TYPE)
                     v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
                     print("value: {}".format(v_str))
                     if expected_value in v_str: # or "9966990055" in v_str:
