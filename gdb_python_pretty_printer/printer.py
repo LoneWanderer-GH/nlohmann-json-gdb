@@ -244,7 +244,7 @@ class LohmannJSONPrinter(object):
                 v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
 
                 k_v_str = "{} : {}".format(k_str, v_str)
-                end_of_line = "\n" if tree_size <= 1 or i == tree_size else ",\n"
+                end_of_line = "\n" if tree_size <= 1 or i == (tree_size - 1) else ",\n"
 
                 s = s + (" " * (self.indent_level * INDENT)) + k_v_str + end_of_line
 
@@ -299,7 +299,7 @@ class LohmannJSONPrinter(object):
                 i_address = start_address + offset
                 value_object = gdb.Value(i_address).cast(NLOHMANN_JSON_TYPE)
                 v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
-                end_of_line = "\n" if size <= 1 or i == size else ",\n"
+                end_of_line = "\n" if size <= 1 or i == (size -1) else ",\n"
                 s = s + (" " * (self.indent_level * INDENT)) + v_str + end_of_line
                 i += 1
             self.indent_level -= 2
