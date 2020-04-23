@@ -3,28 +3,38 @@ echo #\n
 echo # Force gdb to use pretty print of structures managed by default (instead of a barely flat line)\n
 set print pretty
 
+
+# load the classic STL gdb tools for navigating in std collections (std::map, std::vector ...)
+# nbot absolutly necessary, but is helpful
+echo #\n
+echo # Loading STL gdb script\n
+source ../../scripts/stl_parser.gdb
+
+# examples on how to use the STL / STD gdb readers
+# pset foo.m_value.object nlohmann::json
+# pmap foo.m_value.object std::string nlohmann::json*
+# pmap foo.m_value.object std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>> nlohmann::json*
+
+
 # load the simple gdb method requiring a live inferior process
 echo #\n
 echo # Loading simple gdb json dump method\n
-cd ../gdb_script/
-source simple_gdb_method.gdb
+source ../../scripts/nlohmann_json.gdb
 
 
 # load the python gdb pretty printer
 echo #\n
 echo # Loading the complex gdb json dump method\n
-cd ../gdb_python_pretty_printer
-source load_pretty_printer.gdb
+source ../../scripts/nlohmann_json.py
 
-# go back to where we started
-cd ../cpp_test_project
 #
 echo #\n
 echo # Auto setting break point before exe prints mixed_nested\n
-break main.cpp:45
+break main.cpp:70
 
 
-# code to execute once breakpoint is reached (basically, full jsons prints using various methods)
+# code to execute once breakpoint is reached
+# (basically, full jsons prints using various methods)
 command 1
 
 echo #\n

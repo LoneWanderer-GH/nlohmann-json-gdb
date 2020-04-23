@@ -198,8 +198,6 @@ define pmap
         set $tree = $arg0
         set $i = 0
         set $node = $tree._M_t._M_impl._M_header._M_left
-        printf ">===== ROOT NODE"
-        p $node
         set $end = $tree._M_t._M_impl._M_header
         set $tree_size = $tree._M_t._M_impl._M_node_count
         if $argc == 1

@@ -22,11 +22,15 @@
 # SOFTWARE.
 #
 
-# load the python script
-echo # Loading python script\n
-source printer.py
+echo #\n
+echo # Defining a custom gdb command (basically an alias to json dump())\n
 
-# perform registration
-# could be done inside the python script depending on some gdb python autoload config
-echo # Registering python pretty printer \n
-python gdb.printing.register_pretty_printer(gdb.current_objfile(), build_pretty_printer())
+define pjson
+    # use the lohmann's builtin dump method, ident 4 and use space separator
+    printf "%s\n", $arg0.dump(4, ' ', true, json::error_handler_t::strict).c_str()
+end
+
+# configure command helper (text displayed when typing 'help pjson' in gdb)
+document pjson
+    Prints a lohmann's JSON C++ variable as a human-readable JSON string
+end
