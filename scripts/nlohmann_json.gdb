@@ -22,17 +22,6 @@
 # SOFTWARE.
 #
 
-# load the classic STL gdb tools for navigating in std collections (std::map, std::vector ...)
-# nbot absolutly necessary, but is helpful
-echo #\n
-echo # Loading STL gdb script\n
-source ./stl_parser.gdb
-
-# examples on how to use the STL / STD gdb readers
-# pset foo.m_value.object nlohmann::json
-# pmap foo.m_value.object std::string nlohmann::json*
-# pmap foo.m_value.object std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>> nlohmann::json*
-
 echo #\n
 echo # Defining a custom gdb command (basically an alias to json dump())\n
 

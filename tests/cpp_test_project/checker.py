@@ -8,10 +8,26 @@ matcher = re.compile("\$\d+ = ")
 
 # from https://stackoverflow.com/questions/25851183/how-to-compare-two-json-objects-with-the-same-elements-in-a-different-order-equa
 def ordered(obj):
-    if isinstance(obj, dict):
+    # try to be JSON key order insensitive
+    # this is recursive
+    # its for simple tests only, **NOT** JSON parser RFC 8259 robustness/completness
+    # so we hope not to reach some stack limit
+    
+    if isinstance(obj, dict): # json object
         return sorted((k, ordered(v)) for k, v in obj.items())
-    if isinstance(obj, list):
-        return sorted(ordered(x) for x in obj)
+    if isinstance(obj, list): # json list
+        # avoid python 2 != python 3
+        # python 3 refuses to sort heterogeneous lists since some element may not be comparable by default
+        # python 2 can do something without exception (somewhat)
+        #
+        # JSON RFC 8259 tolerates inhomogenous lists 
+        #
+        # so we make a new list (and try to order each of its elements if possible, since it can be a nested JSON object)
+        copy = list()
+        for e in obj:
+            copy.append(ordered(e))
+        return copy # the original JSON object is modified in-place, but only for nested json object (<key, val>); not lists
+        # return sorted(ordered(x) for x in obj)
     else:
         return obj
 
@@ -103,10 +119,6 @@ def test_suite():
 
     results = perform(methods, variables)
 
-    # check test suite is ok
-    # results["toto"] = {"p": json.loads("{}"),
-    #                    "pjson": json.loads("5")}
-
     status, passed, total = check_result(results)
 
     fancy_print("TEST SUITE STATUS: [{:^8} ({:02d}/{:02d} passed)]".format(STATUS_DICT[status], passed, total))
@@ -115,6 +127,35 @@ def test_suite():
         gdb.execute("q 0")
     else:
         gdb.execute("q 127")
+        
+def test_the_test_suite():
+    # some copy pasta, redesign for this is overkill (until it becomes necessary)
+    fancy_print("START TEST SUITE")
+    methods = ["p", "pjson"]
+    variables = ["fooz", "arr", "one", "mixed_nested"]
+
+    results = perform(methods, variables)
+
+    # check test suite correctly handles KO
+    results["toto"] = {"p": json.loads("{}"),
+                       "pjson": json.loads("5")}
+
+    status, passed, total = check_result(results)
+    
+    fancy_print("TEST SUITE STATUS: [{:^8} ({:02d}/{:02d} passed)]".format(STATUS_DICT[status], passed, total))
+    print("")
+    print("It is supposed to be Failed")
+    print("")
+    
+    test_test_suite_status = not status
+    
+    if test_test_suite_status:
+        gdb.execute("q 0")
+    else:
+        print("")
+        print("It is supposed to be Failed but it is not ... exit with bad error code")
+        print("")
+        gdb.execute("q 127")
 
 
-test_suite()
+# test_suite()

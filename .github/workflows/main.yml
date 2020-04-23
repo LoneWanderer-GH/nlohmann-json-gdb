@@ -13,13 +13,13 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  run-offsets-finder-project:
+  build-and-exceute-offsets-finder:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    - name: Install relevant packets (gnat and texinfo)
+    - name: Install relevant packets: gnat, texinfo, gdb, gprbuild
       run: sudo apt-get install gnat texinfo gdb gprbuild
 
     - name: Locate GDB version
@@ -53,10 +53,10 @@ jobs:
       run: gdb --se=./exe/main --command=find_offsets.gdb --batch
       working-directory: ./tests/offsets_finder
 
-  run-test-project:
+  build-and-execute-test-suite:
     runs-on: ubuntu-latest
     steps:
-      - name: Install relevant packets (gnat and texinfo)
+      - name: Install relevant packets: gnat, texinfo, gdb, gprbuild
         run: sudo apt-get install gnat texinfo gdb gprbuild
 
       - name: Locate GDB version
@@ -85,11 +85,19 @@ jobs:
         run: echo "maintenance set internal-error quit yes $(cat .gdbinit)" > .gdbinit && cat .gdbinit
         working-directory: ./tests/cpp_test_project
 
-      - name: Append checker script
-        run: echo -e "source checker.py" >> .gdbinit
+      - name: Prepare test test suite GDB script
+        run: echo -e "source checker.py\npython test_the_test_suite()" > test_test_suite.gdb
+        working-directory: ./tests/cpp_test_project
+    
+      - name: Prepare test suite GDB script
+        run: echo -e "source checker.py\npython test_suite()" > test_suite.gdb
         working-directory: ./tests/cpp_test_project
 
       # Runs a set of commands using the runners shell
-      - name: Start a gdb session
-        run: gdb --se=./exe/main --command=.gdbinit --batch
+      - name: PERFORM GDB [TEST THE TEST SUITE]
+        run: gdb --se=./exe/main --command=test_test_suite.gdb --batch
+        working-directory: ./tests/cpp_test_project
+        
+      - name: PERFORM GDB [TEST SUITE]
+        run: gdb --se=./exe/main --command=test_suite.gdb --batch
         working-directory: ./tests/cpp_test_project
