@@ -21,7 +21,7 @@ jobs:
     steps:
     - name: Install relevant packets: gnat, texinfo, gdb, gprbuild
       run: sudo apt-get install gnat texinfo gdb gprbuild
-
+      
     - name: Locate GDB version
       run: which gdb
 
