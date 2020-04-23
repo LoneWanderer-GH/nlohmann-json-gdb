@@ -238,7 +238,7 @@ class LohmannJSONPrinter(object):
 
                 k_str = parse_std_str_from_hexa_address(hex(key_address))
 
-                value_address = key_address + STD_STRING.sizeof
+                value_address = key_address + STD_STRING.sizeof + 1 # FAKE ERROR TO SEE WHAT HAPPENS TO INTEGRATION TEST
                 value_object = gdb.Value(value_address).cast(NLOHMANN_JSON_TYPE)
 
                 v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
