@@ -297,8 +297,8 @@ class LohmannJSONPrinter(object):
         print("MAGIC_OFFSET_STD_MAP_KEY should be {} (from symbols)".format(offset_key, size_of_node))
         print("MAGIC_OFFSET_STD_MAP_VAL should be {} (from symbols)".format(offset_val, STD_STRING.sizeof))
         print("\n ===> Offsets for STD::MAP : [ NOT FOUND ] <=== ")
-        sys.exit(-25)
-        gdb.execute("q -25")
+        sys.exit(25)
+        gdb.execute("q 25")
 
 
     def parse_as_str(self):
@@ -350,8 +350,8 @@ class LohmannJSONPrinter(object):
                     continue
         print('MAGIC_OFFSET_STD_VECTOR should be = {} (from symbols)'.format(element_size))
         print(" ===> Offsets for STD::VECTOR : [ NOT FOUND ] <=== ")
-        sys.exit(-620)
-        gdb.execute("q -620")
+        sys.exit(620)
+        gdb.execute("q 620")
 
     def is_leaf(self):
         return self.field_type_short != "object" and self.field_type_short != "array"
