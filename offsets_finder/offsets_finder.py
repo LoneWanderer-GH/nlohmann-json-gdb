@@ -244,7 +244,7 @@ class LohmannJSONPrinter(object):
             for offset_key in SEARCH_RANGE:
                 try:
                     print("Testing Node.Key offset {}".format(offset_key))
-                    key_address = std_stl_item_to_int_address(node) + offset_key
+                    key_address = std_stl_item_to_int_address(node) + offset_key +1 # TO UNDO: +1 added to lure CI into an error (i.e. should not pass)
                     k_str = parse_std_str_from_hexa_address(hex(key_address))
                     if key in k_str:
                         key_found = True
