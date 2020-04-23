@@ -271,33 +271,28 @@ class LohmannJSONPrinter(object):
                         break
                 except:
                     continue
-            if not key_found:
-                return "No offset found for STD::MAP key (starting from RB node address)"
-
-            value_found = False
-            for offset_val in SEARCH_RANGE:
-                try:
-                    print("Testing Node.Value offset {}".format(offset_val))
-                    value_address = key_address + offset_val
-                    value_object = gdb.Value(value_address).cast(NLOHMANN_JSON_TYPE)
-                    v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
-                    if value in v_str:
-                        print("Found the value '{}'".format(v_str))
-                        value_found = True
-                        break
-                except:
-                    continue
-            if not value_found:
-                return "No offset found for STD::MAP value (starting from RB key address)"
-            if key_found and value_found:
-                print("\n\nOffsets for STD::MAP <key,val> exploration from a given node are:\n")
-                print("MAGIC_OFFSET_STD_MAP_KEY        = {} (expected value from symbols {})".format(offset_key, size_of_node))
-                print("MAGIC_OFFSET_STD_MAP_VAL        = {} (expected value from symbols {})".format(offset_val, STD_STRING.sizeof))
-                return "\n ===> Offsets for STD::MAP : [ FOUND ] <=== "
-        print("MAGIC_OFFSET_STD_MAP_KEY should be {} (from symbols)".format(offset_key, size_of_node))
-        print("MAGIC_OFFSET_STD_MAP_VAL should be {} (from symbols)".format(offset_val, STD_STRING.sizeof))
+            if key_found:
+                value_found = False
+                for offset_val in SEARCH_RANGE:
+                    try:
+                        print("Testing Node.Value offset {}".format(offset_val))
+                        value_address = key_address + offset_val
+                        value_object = gdb.Value(value_address).cast(NLOHMANN_JSON_TYPE)
+                        v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
+                        if value in v_str:
+                            print("Found the value '{}'".format(v_str))
+                            value_found = True
+                            break
+                    except:
+                        continue
+                if key_found and value_found:
+                    print("\n\nOffsets for STD::MAP <key,val> exploration from a given node are:\n")
+                    print("MAGIC_OFFSET_STD_MAP_KEY        = {} (expected value from symbols {})".format(offset_key, size_of_node))
+                    print("MAGIC_OFFSET_STD_MAP_VAL        = {} (expected value from symbols {})".format(offset_val, STD_STRING.sizeof))
+                    return "\n ===> Offsets for STD::MAP : [ FOUND ] <=== "
+        print("MAGIC_OFFSET_STD_MAP_KEY should be {} (from symbols)".format(size_of_node))
+        print("MAGIC_OFFSET_STD_MAP_VAL should be {} (from symbols)".format(STD_STRING.sizeof))
         print("\n ===> Offsets for STD::MAP : [ NOT FOUND ] <=== ")
-        sys.exit(25)
         gdb.execute("q 25")
 
 
@@ -350,7 +345,6 @@ class LohmannJSONPrinter(object):
                     continue
         print('MAGIC_OFFSET_STD_VECTOR should be = {} (from symbols)'.format(element_size))
         print(" ===> Offsets for STD::VECTOR : [ NOT FOUND ] <=== ")
-        sys.exit(620)
         gdb.execute("q 620")
 
     def is_leaf(self):
@@ -373,20 +367,13 @@ class LohmannJSONPrinter(object):
         return s
 
     def to_string(self):
-        try:
-            self.field_type_full_namespace = self.val["m_type"]
-            str_val = str(self.field_type_full_namespace)
-            if not str_val in ENUM_LITERAL_NAMESPACE_TO_LITERAL:
-                return "invalid"
-                # raise ValueError("Unkown litteral for data type enum. Found {}\nNot in:\n{}".format(str_val,
-                #                                                                                     "\n\t".join(
-                #                                                                                         ENUM_LITERAL_NAMESPACE_TO_LITERAL)))
-            self.field_type_short = ENUM_LITERAL_NAMESPACE_TO_LITERAL[str_val]
-            return self.function_map[str_val]()
-            # return self.parse()
-        except:
-            # show_last_exception()
-            return "invalid"
+        self.field_type_full_namespace = self.val["m_type"]
+        str_val = str(self.field_type_full_namespace)
+        if not str_val in ENUM_LITERAL_NAMESPACE_TO_LITERAL:
+            gdb.execute("q 100")
+        self.field_type_short = ENUM_LITERAL_NAMESPACE_TO_LITERAL[str_val]
+        return self.function_map[str_val]()
+
 
     def display_hint(self):
         return self.val.type
