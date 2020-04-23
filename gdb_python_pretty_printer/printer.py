@@ -52,21 +52,12 @@ PLATFORM_BITS = "64" if sys.maxsize > 2 ** 32 else "32"
 print("PLATFORM_BITS {}".format(PLATFORM_BITS))
 
 
-# STD offsets black magic
-# 64 obtained from win x64
-# 32 obtained from raspberry pi arm32
-# other platforms ? find them yourself ^^
-MAGIC_OFFSET_STD_VECTOR = {"64": 16, "32": 16}
-
-MAGIC_OFFSET_STD_MAP_KEY = {"64": 32, "32": 16} # offset from node address
-MAGIC_OFFSET_STD_MAP_VAL = {"64": 32, "32": 24} # offset from key  address
-
 """"""
 # GDB black magic
 """"""
 NLOHMANN_JSON_TYPE_PREFIX = "nlohmann::basic_json"
 
-class NO_JSON_TYPE_ERROR(Exception):
+class NO_TYPE_ERROR(Exception):
     pass
 
 
@@ -77,14 +68,9 @@ class NO_ENUM_TYPE_ERROR(Exception):
 class NO_RB_TREE_TYPES_ERROR(Exception):
     pass
 
-
-def find_platform_json_type(nlohmann_json_type_prefix):
-    """
-    Executes GDB commands to find the correct JSON type in a platform independant way.
-    Not debug symbols => no cigar
-    """
-    # takes a regex and returns a multiline string
-    info_types = gdb.execute("info types ^{}<.*>$".format(nlohmann_json_type_prefix), to_string=True)
+def find_platform_type(regex, helper_type_name):
+    # we suppose its a unique match, 4 lines output
+    info_types = gdb.execute("info types {}".format(regex), to_string=True)
     # make it multines
     lines = info_types.splitlines()
     # correct command should have given  lines, the last one being the correct one
@@ -94,21 +80,39 @@ def find_platform_json_type(nlohmann_json_type_prefix):
         # transform result
         t = "".join(t[1::]).split(";")[0]
         print("")
-        print("The JSON type for this executable is".center(80, "-"))
+        print("The researched {} type for this executable is".format(helper_type_name).center(80, "-"))
         print("{}".format(t).center(80, "-"))
+        print("Using regex: {}".format(regex))
         print("".center(80, "-"))
         print("")
         return t
 
     else:
-        raise NO_JSON_TYPE_ERROR("Too many matching types found ...\n{}".format("\n\t".join(lines)))
+        raise NO_TYPE_ERROR("Too many matching types found ...\n{}".format("\n\t".join(lines)))
+
+
+def find_platform_std_string_type():
+    std_str_regex = "^std::__cxx.*::basic_string<char,.*>$" # platform/compilation dependant ?
+    t = find_platform_type(std_str_regex, "std::string")
+    return gdb.lookup_type(t)
+
+
+def find_platform_json_type(nlohmann_json_type_prefix):
+    """
+    Executes GDB commands to find the correct JSON type in a platform independant way.
+    Not debug symbols => no cigar
+    """
+    # takes a regex and returns a multiline string
+    regex = "^{}<.*>$".format(nlohmann_json_type_prefix)
+    return find_platform_type(regex, nlohmann_json_type_prefix)
+
 
 def find_lohmann_types():
     nlohmann_json_type_namespace = find_platform_json_type(NLOHMANN_JSON_TYPE_PREFIX)
     try:
         NLOHMANN_JSON_TYPE = gdb.lookup_type(nlohmann_json_type_namespace).pointer()
     except:
-        raise NO_JSON_TYPE_ERROR("Type namesapce found but could not obtain type data ... WEIRD !")
+        raise NO_TYPE_ERROR("Type namespace found but could not obtain type data ... WEIRD !")
     try:
         enum_json_detail = gdb.lookup_type("nlohmann::detail::value_t").fields()
     except:
@@ -156,9 +160,10 @@ def find_rb_tree_types():
 
 ## SET GLOBAL VARIABLES
 try:
+    STD_STRING = find_platform_std_string_type()
     NLOHMANN_JSON_TYPE_NAMESPACE, NLOHMANN_JSON_TYPE, ENUM_JSON_DETAIL = find_lohmann_types()
     STD_RB_TREE_NODE_TYPE, STD_RB_TREE_SIZE_TYPE, STD_RB_HEADER_OFFSETS = find_rb_tree_types()
-except NO_JSON_TYPE_ERROR:
+except NO_TYPE_ERROR:
     print("FATAL ERROR {}".format(ERROR_NO_CORRECT_JSON_TYPE_FOUND))
     print("FATAL ERROR {}".format(ERROR_NO_CORRECT_JSON_TYPE_FOUND))
     print("FATAL ERROR {}: missing JSON type definition, could not find the JSON type starting with {}".format(NLOHMANN_JSON_TYPE_PREFIX))
@@ -188,8 +193,6 @@ class LohmannJSONPrinter(object):
      - Contains shitty string formatting (defining lists and playing with ",".join(...) could be better; ident management is stoneage style)
      - NO LIB VERSION MANAGEMENT.
             TODO: determine if there are serious variants in nlohmann data structures that would justify working with strucutres
-     - PLATFORM DEPENDANT
-            TODO: handle magic offsets in a nicer way (get the exact types sizes with some gdb commands ?)
     NB: If you are python-kaizer-style-guru, please consider helping or teaching how to improve all that mess
     """
 
@@ -220,6 +223,8 @@ class LohmannJSONPrinter(object):
         node      = o["_M_t"]["_M_impl"]["_M_header"]["_M_left"]
         tree_size = o["_M_t"]["_M_impl"]["_M_node_count"]
 
+        size_of_node = o["_M_t"]["_M_impl"]["_M_header"]["_M_left"].referenced_value().type.sizeof
+
         i = 0
 
         if tree_size == 0:
@@ -228,11 +233,12 @@ class LohmannJSONPrinter(object):
             s = "{\n"
             self.indent_level += 1
             while i < tree_size:
-                key_address = std_stl_item_to_int_address(node) + MAGIC_OFFSET_STD_MAP_KEY[PLATFORM_BITS]
+                # when it is written "+1" in the STL GDB script, it performs an increment of 1 x size of object
+                key_address = std_stl_item_to_int_address(node) + size_of_node
 
                 k_str = parse_std_str_from_hexa_address(hex(key_address))
 
-                value_address = key_address + MAGIC_OFFSET_STD_MAP_VAL[PLATFORM_BITS]
+                value_address = key_address + STD_STRING.sizeof
                 value_object = gdb.Value(long(value_address)).cast(NLOHMANN_JSON_TYPE)
 
                 v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
@@ -280,6 +286,8 @@ class LohmannJSONPrinter(object):
         # capacity = o["_M_impl"]["_M_end_of_storage"] - start
         # size_max = size - 1
         i = 0
+        # when it is written "+1" in the STL GDB script, it performs an increment of 1 x size of object
+        element_size = start.referenced_value().type.sizeof
         start_address = std_stl_item_to_int_address(start)
         if size == 0:
             s = "[]"
@@ -287,7 +295,7 @@ class LohmannJSONPrinter(object):
             self.indent_level += 1
             s = "[\n"
             while i < size:
-                offset = i * MAGIC_OFFSET_STD_VECTOR[PLATFORM_BITS]
+                offset = i * element_size
                 i_address = start_address + offset
                 value_object = gdb.Value(long(i_address)).cast(NLOHMANN_JSON_TYPE)
                 v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()

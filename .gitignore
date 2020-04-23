@@ -1,11 +1,14 @@
+# temp GPS files weirdness
+*/**/.#*.*#
+
+# ignore dirs
 */exe/**
 */obj/**
 **/.idea/**
 
 #gdb_python_pretty_printer/.idea/
 
+# some stuff that sits at home
 gdb_python_pretty_printer/proto.py
-
 assets/captures/
-
 offsets_finder/prout.py

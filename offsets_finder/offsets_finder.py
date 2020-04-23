@@ -65,7 +65,7 @@ print("")
 """"""
 NLOHMANN_JSON_TYPE_PREFIX = "nlohmann::basic_json"
 
-class NO_JSON_TYPE_ERROR(Exception):
+class NO_TYPE_ERROR(Exception):
     pass
 
 
@@ -77,13 +77,9 @@ class NO_RB_TREE_TYPES_ERROR(Exception):
     pass
 
 
-def find_platform_json_type(nlohmann_json_type_prefix):
-    """
-    Executes GDB commands to find the correct JSON type in a platform independant way.
-    Not debug symbols => no cigar
-    """
-    # takes a regex and returns a multiline string
-    info_types = gdb.execute("info types ^{}<.*>$".format(nlohmann_json_type_prefix), to_string=True)
+def find_platform_type(regex, helper_type_name):
+    # we suppose its a unique match, 4 lines output
+    info_types = gdb.execute("info types {}".format(regex), to_string=True)
     # make it multines
     lines = info_types.splitlines()
     # correct command should have given  lines, the last one being the correct one
@@ -93,21 +89,38 @@ def find_platform_json_type(nlohmann_json_type_prefix):
         # transform result
         t = "".join(t[1::]).split(";")[0]
         print("")
-        print("The JSON type for this executable is".center(80, "-"))
+        print("The researched {} type for this executable is".format(helper_type_name).center(80, "-"))
         print("{}".format(t).center(80, "-"))
+        print("Using regex: {}".format(regex))
         print("".center(80, "-"))
         print("")
         return t
 
     else:
-        raise NO_JSON_TYPE_ERROR("Too many matching types found ...\n{}".format("\n\t".join(lines)))
+        raise NO_TYPE_ERROR("Too many matching types found ...\n{}".format("\n\t".join(lines)))
+
+def find_platform_std_string_type():
+    std_str_regex = "^std::__cxx.*::basic_string<char,.*>$" # platform/compilation dependant ?
+    t = find_platform_type(std_str_regex, "std::string")
+    return gdb.lookup_type(t)
+
+
+def find_platform_json_type(nlohmann_json_type_prefix):
+    """
+    Executes GDB commands to find the correct JSON type in a platform independant way.
+    Not debug symbols => no cigar
+    """
+    # takes a regex and returns a multiline string
+    regex = "^{}<.*>$".format(nlohmann_json_type_prefix)
+    return find_platform_type(regex, nlohmann_json_type_prefix)
+
 
 def find_lohmann_types():
     nlohmann_json_type_namespace = find_platform_json_type(NLOHMANN_JSON_TYPE_PREFIX)
     try:
         NLOHMANN_JSON_TYPE = gdb.lookup_type(nlohmann_json_type_namespace).pointer()
     except:
-        raise NO_JSON_TYPE_ERROR("Type namesapce found but could not obtain type data ... WEIRD !")
+        raise NO_TYPE_ERROR("Type namespace found but could not obtain type data ... WEIRD !")
     try:
         enum_json_detail = gdb.lookup_type("nlohmann::detail::value_t").fields()
     except:
@@ -155,9 +168,10 @@ def find_rb_tree_types():
 
 ## SET GLOBAL VARIABLES
 try:
+    STD_STRING = find_platform_std_string_type()
     NLOHMANN_JSON_TYPE_NAMESPACE, NLOHMANN_JSON_TYPE, ENUM_JSON_DETAIL = find_lohmann_types()
     STD_RB_TREE_NODE_TYPE, STD_RB_TREE_SIZE_TYPE, STD_RB_HEADER_OFFSETS = find_rb_tree_types()
-except NO_JSON_TYPE_ERROR:
+except NO_TYPE_ERROR:
     print("FATAL ERROR {}".format(ERROR_NO_CORRECT_JSON_TYPE_FOUND))
     print("FATAL ERROR {}".format(ERROR_NO_CORRECT_JSON_TYPE_FOUND))
     print("FATAL ERROR {}: missing JSON type definition, could not find the JSON type starting with {}".format(NLOHMANN_JSON_TYPE_PREFIX))
@@ -187,8 +201,6 @@ class LohmannJSONPrinter(object):
      - Contains shitty string formatting (defining lists and playing with ",".join(...) could be better; ident management is stoneage style)
      - NO LIB VERSION MANAGEMENT.
             TODO: determine if there are serious variants in nlohmann data structures that would justify working with strucutres
-     - PLATFORM DEPENDANT
-            TODO: handle magic offsets in a nicer way (get the exact types sizes with some gdb commands ?)
     NB: If you are python-kaizer-style-guru, please consider helping or teaching how to improve all that mess
     """
 
@@ -221,6 +233,8 @@ class LohmannJSONPrinter(object):
         node      = o["_M_t"]["_M_impl"]["_M_header"]["_M_left"]
         tree_size = o["_M_t"]["_M_impl"]["_M_node_count"]
 
+        size_of_node = o["_M_t"]["_M_impl"]["_M_header"]["_M_left"].referenced_value().type.sizeof
+        
         i = 0
 
         if tree_size == 0:
@@ -258,8 +272,8 @@ class LohmannJSONPrinter(object):
                 return "No offset found for STD::MAP value (starting from RB key address)"
             if key_found and value_found:
                 print("\n\nOffsets for STD::MAP <key,val> exploration from a given node are:\n")
-                print("MAGIC_OFFSET_STD_MAP_KEY        = {}".format(offset_key))
-                print("MAGIC_OFFSET_STD_MAP_VAL        = {}".format(offset_val))
+                print("MAGIC_OFFSET_STD_MAP_KEY        = {} (expected value from symbols {})".format(offset_key, size_of_node))
+                print("MAGIC_OFFSET_STD_MAP_VAL        = {} (expected value from symbols {})".format(offset_val, STD_STRING.sizeof))
                 return "\n ===> Offsets for STD::MAP : [ FOUND ] <=== "
         return "\n ===> Offsets for STD::MAP : [ NOT FOUND ] <=== "
 
@@ -288,8 +302,8 @@ class LohmannJSONPrinter(object):
         # capacity = o["_M_impl"]["_M_end_of_storage"] - start
         # size_max = size - 1
         # test code has the interesting part at index 1 (2nd element)
-        # print("nb of array elements {}".format(size))
 
+        element_size = start.referenced_value().type.sizeof
         # start at expected index directly
         i = expected_index
         start_address = std_stl_item_to_int_address(start)
@@ -306,7 +320,8 @@ class LohmannJSONPrinter(object):
                     print("value: {}".format(v_str))
                     if expected_value in v_str: # or "9966990055" in v_str:
                         print("\n\nOffsets for STD::VECTOR exploration are:\n")
-                        print("MAGIC_OFFSET_STD_VECTOR = {}".format(offset))
+                        print("MAGIC_OFFSET_STD_VECTOR                           = {}".format(offset))
+                        print('OFFSET should be size of o["_M_impl"]["_M_start"] = {}'.format(element_size))
                         return "\n ===> Offsets for STD::VECTOR : [ FOUND ] <=== "
                 except:
                     continue
