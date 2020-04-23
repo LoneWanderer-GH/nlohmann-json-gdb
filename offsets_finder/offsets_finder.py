@@ -263,7 +263,7 @@ class LohmannJSONPrinter(object):
             for offset_key in SEARCH_RANGE:
                 try:
                     print("Testing Node.Key offset {}".format(offset_key))
-                    key_address = std_stl_item_to_int_address(node) + offset_key +1 # TO UNDO: +1 added to lure CI into an error (i.e. should not pass)
+                    key_address = std_stl_item_to_int_address(node) + offset_key # + 1
                     k_str = parse_std_str_from_hexa_address(hex(key_address))
                     if key in k_str:
                         key_found = True
@@ -286,10 +286,11 @@ class LohmannJSONPrinter(object):
                     except:
                         continue
                 if key_found and value_found:
-                    print("\n\nOffsets for STD::MAP <key,val> exploration from a given node are:\n")
-                    print("MAGIC_OFFSET_STD_MAP_KEY        = {} (expected value from symbols {})".format(offset_key, size_of_node))
-                    print("MAGIC_OFFSET_STD_MAP_VAL        = {} (expected value from symbols {})".format(offset_val, STD_STRING.sizeof))
-                    return "\n ===> Offsets for STD::MAP : [ FOUND ] <=== "
+                    if offset_key == size_of_node and offset_val == STD_STRING.sizeof:
+                        print("\n\nOffsets for STD::MAP <key,val> exploration from a given node are:\n")
+                        print("MAGIC_OFFSET_STD_MAP_KEY        = {} = expected value from symbols {}".format(offset_key, size_of_node))
+                        print("MAGIC_OFFSET_STD_MAP_VAL        = {} = expected value from symbols {}".format(offset_val, STD_STRING.sizeof))
+                        return "\n ===> Offsets for STD::MAP : [ FOUND ] <=== "
         print("MAGIC_OFFSET_STD_MAP_KEY should be {} (from symbols)".format(size_of_node))
         print("MAGIC_OFFSET_STD_MAP_VAL should be {} (from symbols)".format(STD_STRING.sizeof))
         print("\n ===> Offsets for STD::MAP : [ NOT FOUND ] <=== ")
@@ -337,10 +338,11 @@ class LohmannJSONPrinter(object):
                     v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
                     print("value: {}".format(v_str))
                     if expected_value in v_str: # or "9966990055" in v_str:
-                        print("\n\nOffsets for STD::VECTOR exploration are:\n")
-                        print("MAGIC_OFFSET_STD_VECTOR                           = {}".format(offset))
-                        print('OFFSET should be size of o["_M_impl"]["_M_start"] = {}'.format(element_size))
-                        return "\n ===> Offsets for STD::VECTOR : [ FOUND ] <=== "
+                        if offset == element_size:
+                            print("\n\nOffsets for STD::VECTOR exploration are:\n")
+                            print("MAGIC_OFFSET_STD_VECTOR = {}".format(offset))
+                            print('OFFSET expected value   = {} (o["_M_impl"]["_M_start"], vector element size)'.format(element_size))
+                            return "\n ===> Offsets for STD::VECTOR : [ FOUND ] <=== "
                 except:
                     continue
         print('MAGIC_OFFSET_STD_VECTOR should be = {} (from symbols)'.format(element_size))
@@ -370,7 +372,8 @@ class LohmannJSONPrinter(object):
         self.field_type_full_namespace = self.val["m_type"]
         str_val = str(self.field_type_full_namespace)
         if not str_val in ENUM_LITERAL_NAMESPACE_TO_LITERAL:
-            gdb.execute("q 100")
+            # gdb.execute("q 100")
+            return "Not a valid JSON type, continuing"
         self.field_type_short = ENUM_LITERAL_NAMESPACE_TO_LITERAL[str_val]
         return self.function_map[str_val]()
 

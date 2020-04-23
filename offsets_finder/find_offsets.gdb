@@ -46,3 +46,12 @@ echo # Running the exe\n
 r
 
 
+# everything went fine, exit 0
+echo \n
+echo \n
+echo ############ FORCING A NORMAL EXIT (code 0) ############\n
+echo \n
+echo Errors in python should have triggered a different exit code earlier
+echo \n
+echo \n
+q 0
