@@ -159,10 +159,13 @@ Any seasoned advice and support appreciated. Aspects I would like to improve:_
 
 ## Possible TODO list
 
- - [x] ~~the pythonGDBpretty printer core dump management is not (yet ?) done (i.e. core dump means no inferior process to call dump() in any way, and possibly less/no (debug) symbols to rely on)~~
-     Core dump with debug symbols tested and should be working.
+ - [ ] dont use this TODO list, but Github issues and Github project management
  - [ ] printer can be customised further to print the 0x addresses, I chose not to since the whole point for me was NOT to explore them in GDB. You would have to add few python `print` here and there
  - [ ] add the hexa value for floating point numbers, or for all numerical values
+ - [ ] reduce amount of copy/pasta between [offsets_finder.py](tests/offsets_finder/offsets_finder.py) and [nlohmann_json.py](scripts/nlohmann_json.py)
+
+ - [x] ~~the pythonGDBpretty printer core dump management is not (yet ?) done (i.e. core dump means no inferior process to call dump() in any way, and possibly less/no (debug) symbols to rely on)~~
+     Core dump with debug symbols tested and should be working.
  - [x] ~~Improve method to get `std::string` `type` and `sizeof`. The current method assumes some known symbols names, that most probably depends on the compilation tools (C++11).
      Sadly, GDB command `whatis` and `ptype` cannot resolve directly and easily `std::string`~~
      Solved with the gdb type template argument type extraction feature
