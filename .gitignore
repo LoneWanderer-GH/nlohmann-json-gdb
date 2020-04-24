@@ -15,3 +15,7 @@
 **/**/proto.py
 assets/captures/
 **/**/prout.py
+
+tests/offsets_finder/before_run.txt
+
+tests/offsets_finder/types.txt
