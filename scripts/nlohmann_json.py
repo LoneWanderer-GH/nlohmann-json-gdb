@@ -237,7 +237,7 @@ class LohmannJSONPrinter(object):
                 # key is right after
                 key_address = gdb_value_address_to_int(node) + STD_RB_TREE_NODE_TYPE.sizeof
 
-                k_str = parse_std_string_from_hexa_address(key_address) #hex(key_address))
+                k_str = parse_std_string_from_hexa_address(key_address)
 
                 value_address = key_address + NLOHMANN_JSON_MAP_KEY_TYPE.sizeof
                 value_object = gdb.Value(value_address).cast(NLOHMANN_JSON_TYPE_POINTER)
