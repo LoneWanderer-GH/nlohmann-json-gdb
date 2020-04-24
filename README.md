@@ -10,6 +10,22 @@ Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3
    - Raspbian arm x32
    - Ubuntu x64 (Github CI)
 
+This is also a playground for me to get used to Git, Github, and GDB.
+
+## Release notes:
+
+### v0.0.1: first pretty printer release
+
+Features:
+ - improved overall GDB python pretty printer code
+    - now multiplatform
+ - created some sort of a CI process to check we did not mess up with features. It currently checks that the pretty printer matches the json.dump() output.
+
+Limitations:
+ - I found that finding the exact real symbol behind `std::string` is not possible until you have run the inferior GDB process (command `r`).
+     So for now, it finds the symbol with what I had at hand, I'm pretty sure its is C++11 compatible only.
+     see [Known limitations](#Known-limitations)
+
 ---
 
 **Table of contents**
