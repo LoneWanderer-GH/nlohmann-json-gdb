@@ -115,7 +115,7 @@ def fancy_print(s):
 def test_suite():
     fancy_print("START TEST SUITE")
     methods = ["p", "pjson"]
-    variables = ["fooz", "arr", "one", "mixed_nested"]
+    variables = ["fooz", "arr", "one", "foo", "mixed_nested"]
 
     results = perform(methods, variables)
 
