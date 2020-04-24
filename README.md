@@ -28,7 +28,7 @@ Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3
 <a name="Prerequisites"></a>
 # 1. Prerequisites
 
- - *GDB 8.3* debugger installed, ready to use.
+ - *GDB 8.3+* debugger installed, ready to use.
      Python support started with GDB 7, so it may work with versions starting GDB 7
  - an executable to debug **with debug symbols available to GDB** which uses the [JSON lib 3.7.3][3]
  - or a core dump **with debug symbols available to GDB** (for linux users)
@@ -137,15 +137,19 @@ see also [this GDB doc](https://doc.ecoscentric.com/gnutools/doc/gdb/Files.html#
 _Coding technique for the pretty printer is quite naive, but it works.
 Any seasoned advice and support appreciated. Aspects I would like to improve:_
  - performance
- - walking in memory using as much GDB commands instead of hardcoding some offsets. This requires both knowledge of GDB and the JSON library symbols usage
+ - code style
+ - Release packaging
+ - Lib version checks
 
 ## Possible TODO list
 
- - [x] ~~the pythonGDBpretty printer core dump management is not (yet ?) done (i.e. core dump means no inferior process to call dump() in any way, and possibly less/no (debug) symbols to rely on)~~ Core dump with debug symbols tested and should be working.
+ - [x] ~~the pythonGDBpretty printer core dump management is not (yet ?) done (i.e. core dump means no inferior process to call dump() in any way, and possibly less/no (debug) symbols to rely on)~~
+     Core dump with debug symbols tested and should be working.
  - [ ] printer can be customised further to print the 0x addresses, I chose not to since the whole point for me was NOT to explore them in GDB. You would have to add few python `print` here and there
  - [ ] add the hexa value for floating point numbers, or for all numerical values
- - [ ] Improve method to get `std::string` `type` and `sizeof`. The current method assumes some known symbols names, that most probably depends on the compilation tools (C++11).
-     Sadly, GDB command `whatis` and `ptype` cannot resolve directly and easily `std::string`
+ - [x] ~~Improve method to get `std::string` `type` and `sizeof`. The current method assumes some known symbols names, that most probably depends on the compilation tools (C++11).
+     Sadly, GDB command `whatis` and `ptype` cannot resolve directly and easily `std::string`~~
+     Solved with the gdb type template argument type extraction feature
 
 
 <a name="Known-limitations"></a>
