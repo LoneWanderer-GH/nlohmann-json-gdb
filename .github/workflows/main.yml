@@ -52,8 +52,7 @@ jobs:
       run: gdb --version && gdb --configuration
 
     - name: Check GDB supports python
-      run: gdb
-      args:  --command=$PYTHON_TEST --batch
+      run: gdb --command=$PYTHON_TEST --batch
 
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
