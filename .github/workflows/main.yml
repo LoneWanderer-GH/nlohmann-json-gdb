@@ -30,11 +30,14 @@ jobs:
     - name: Check OS version
       run: wmic os get Name, BuildNumber, BuildType, Version, OSArchitecture
 
-    - name: Install relevant packets gnat, texinfo, gdb, gprbuild
-      run: choco install gnat texinfo gdb gprbuild gnat-gpl
+    - name: Install relevant packets gnat-gpl which will hopefully provide gprbuild, gnat and gdb
+      run: choco install gnat-gpl
 
     - name: GNAT location and version
       run: which gnat && gnat --version
+
+    - name: gprbuild location and version
+      run: which gprbuild && gprbuild --version
 
     - name: GDB location, version and configuration
       run: which gdb && gdb --version && gdb --configuration
