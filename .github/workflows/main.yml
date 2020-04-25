@@ -28,16 +28,21 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    - name: Check OS version
-      run: wmic os get Name, BuildNumber, BuildType, Version, OSArchitecture
+    - name: Chocolatey configuration
+      run: choco config list
 
-    - name: Install relevant packets gnat-gpl which will hopefully provide gprbuild, gnat and gdb
-      run: choco install gnat-gpl -v -d
+    # - name: Store Chocolatey cache dir
+    #   run: echo ::set-env name=CHOCOLATEY_CACHE_PATH::$(choco config get cacheLocation)
 
     - name: Cache the chocolatey download dir
       uses: actions/cache@v1
       with:
         path: $TEMP\chocolatey
+        key: ${{ runner.os }}-chocolatey-download-cache
+
+    - name: Install relevant packets gnat-gpl which will hopefully provide gprbuild, gnat and gdb
+      run: choco install gnat-gpl -v -d
+
 
     - name: Add GNAT to PATH, chocolatey cannot do it by itself ?
       run: echo "::add-path::$GNAT_BIN_PATH"
