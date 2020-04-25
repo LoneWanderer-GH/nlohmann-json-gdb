@@ -37,7 +37,7 @@ jobs:
     - name: Cache the chocolatey download dir
       uses: actions/cache@v1
       with:
-        path: %CHOCOLATEY_CACHE_PATH%
+        path: \%CHOCOLATEY_CACHE_PATH%
         key: ${{ runner.os }}-chocolatey-download-cache
 
     - name: Install relevant packets gnat-gpl which will hopefully provide gprbuild, gnat and gdb
