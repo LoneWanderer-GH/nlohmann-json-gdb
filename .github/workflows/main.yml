@@ -37,13 +37,13 @@ jobs:
       run: echo "::add-path::C:\GNAT"
 
     - name: GNAT location and version
-      run: which gnat && gnat --version
+      run: gnat --version
 
     - name: gprbuild location and version
-      run: which gprbuild && gprbuild --version
+      run: gprbuild --version
 
     - name: GDB location, version and configuration
-      run: which gdb && gdb --version && gdb --configuration
+      run: gdb --version && gdb --configuration
 
     - name: Check GDB supports python
       run: gdb --command=$PYTHON_TEST --batch
