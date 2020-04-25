@@ -48,7 +48,7 @@ jobs:
           ${{ runner.os }}-chocolatey-download-cache
 
     - name: Install relevant packets gnat-gpl which will hopefully provide gprbuild, gnat and gdb
-      run: choco install gnat-gpl -v -d
+      run: choco install gnat-gpl # -v -d
 
 
     - name: Add GNAT to PATH, chocolatey cannot do it by itself ?
@@ -64,7 +64,7 @@ jobs:
       run: gdb --version && gdb --configuration
 
     - name: Check GDB supports python
-      run: gdb --command=%PYTHON_TEST% --batch
+      run: gdb --command=$PYTHON_TEST --batch
 
     # # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     # - uses: actions/checkout@v2
