@@ -49,21 +49,21 @@ jobs:
       #   id: choco-cache
       #   with:
       #     path: ${{ steps.choco-cache-dir-path.outputs.dir }}
-      #     key: ${{ runner.os }}-chocolatey-download-cache
+      #     key: ${{ matrix.os }}-chocolatey-download-cache
       #     restore-keys: |
-      #       ${{ runner.os }}-chocolatey-download-cache
+      #       ${{ matrix.os }}-chocolatey-download-cache
 
       - name: Install relevant packets gnat-gpl which will hopefully provide gprbuild, gnat and gdb
         run: choco install gnat-gpl # -v -d
-        if: runner.os == 'windows-latest'
+        if: matrix.os == 'windows-latest'
 
       - name: Add GNAT to PATH, chocolatey cannot do it by itself ?
         run: echo "::add-path::C:\GNAT\bin"
-        if: runner.os == 'windows-latest'
+        if: matrix.os == 'windows-latest'
 
       - name: Install relevant packets gnat, texinfo, gdb, gprbuild
         run: sudo apt-get install gnat texinfo gdb gprbuild
-        if: runner.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest'
 
 
       - name: GDB location, version and configuration
@@ -83,12 +83,12 @@ jobs:
       - name: Run offsets_finder GDB session
         run: gdb --se=./exe/main.exe --command=find_offsets.gdb --batch
         working-directory: ./tests/offsets_finder
-        if: runner.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest'
 
       - name: Run offsets_finder GDB session
         run: gdb --se=./exe/main --command=find_offsets.gdb --batch
         working-directory: ./tests/offsets_finder
-        if: runner.os == 'windows-latest'
+        if: matrix.os == 'windows-latest'
 
 
 
@@ -113,22 +113,22 @@ jobs:
       - name: PERFORM GDB [TEST THE TEST SUITE]
         run: gdb --se=./exe/main --command=Test_Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
-        if: runner.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest'
 
       - name: PERFORM GDB [TEST SUITE]
         run: gdb --se=./exe/main --command=Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
-        if: runner.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest'
 
       - name: PERFORM GDB [TEST THE TEST SUITE]
         run: gdb --se=./exe/main.exe --command=Test_Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
-        if: runner.os == 'windows-latest'
+        if: matrix.os == 'windows-latest'
 
       - name: PERFORM GDB [TEST SUITE]
         run: gdb --se=./exe/main.exe --command=Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
-        if: runner.os == 'windows-latest'
+        if: matrix.os == 'windows-latest'
 
   # This workflow contains a single job called "build"
   build-and-execute-offsets-finder:
