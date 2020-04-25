@@ -34,7 +34,7 @@ jobs:
       run: choco install gnat-gpl -v -d
 
     - name: Add GNAT to PATH, chocolatey cannot do it by itself ...
-      run: echo "::add-path::C:\GNAT"
+      run: echo "::add-path::C:\GNAT\bin"
 
     - name: GNAT location and version
       run: gnat --version
