@@ -12,6 +12,45 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+
+  win-build-and-execute-offsets-finder:
+    # The type of runner that the job will run on
+    runs-on: windows-latest
+    env:
+      TEST_DIR: ./tests/offsets_finder
+      PYTHON_TEST: ./tests/Test_GDB_python.gdb
+      GDB_TEST_SCRIPT: find_offsets.gdb
+      EXE_FILE: ./exe/main.exe
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    - name: Check OS version
+      run: wmic os get Name, BuildNumber, BuildType, Version, OSArchitecture
+
+    - name: Install relevant packets gnat, texinfo, gdb, gprbuild
+      run: choco install gnat texinfo gdb gprbuild gnat-gpl
+
+    - name: GNAT location and version
+      run: which gnat && gnat --version
+
+    - name: GDB location, version and configuration
+      run: which gdb && gdb --version && gdb --configuration
+
+    - name: Check GDB supports python
+      run: gdb --command=$PYTHON_TEST --batch
+
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
+    - name: Build the test project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
+      run: pwd && ls -al && gprbuild -p -vm
+      working-directory: $TEST_DIR
+
+    # Runs a set of commands using the runners shell
+    - name: Run GDB session
+      run: gdb --se=$EXE_FILE --command=$GDB_TEST_SCRIPT --batch
+      working-directory: $TEST_DIR
+
   # This workflow contains a single job called "build"
   build-and-execute-offsets-finder:
     # The type of runner that the job will run on
@@ -31,7 +70,7 @@ jobs:
     - name: Output GDB configuration
       run: gdb --configuration
 
-    - name: Prepare some GDB command tests
+    - name: Check GDB supports Python
       run: echo -e "maintenance set internal-error quit yes\nhelp python\npython\nimport sys\nprint(\"Foo\")\nsys.exit(0)\nend\nq 25" > python_test.gdb
 
     - name: Check GDB supports python (exit code 25 means something went wrong in the python commands) otherwise exit code should be the 0 force un sys.exit(0)
@@ -68,7 +107,7 @@ jobs:
       - name: Output GDB configuration
         run: gdb --configuration
 
-      - name: Prepare some GDB command tests
+      - name: Check GDB supports Python
         run: echo -e "maintenance set internal-error quit yes\nhelp python\npython\nimport sys\nprint(\"Foo\")\nsys.exit(0)\nend\nq 25" > python_test.gdb
 
       - name: Check GDB supports python (exit code 25 means something went wrong in the python commands) otherwise exit code should be the 0 force un sys.exit(0)
