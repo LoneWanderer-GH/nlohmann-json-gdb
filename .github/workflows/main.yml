@@ -91,44 +91,35 @@ jobs:
         if: matrix.os == 'windows-latest'
 
 
-
-
       - name: Build cpp_test_project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
-        run: pwd && ls -al && gprbuild -p -vm
+        run: gprbuild -p -vm
         working-directory: ./tests/cpp_test_project
 
-      # - name: Prepend GDB quit on error (and output file for check)
-      #   run: echo "maintenance set internal-error quit yes $(cat .gdbinit)" > .gdbinit && cat .gdbinit
-      #   working-directory: ./tests/cpp_test_project
-
-      # - name: Prepare test test suite GDB script
-      #   run: cat .gdbinit > test_test_suite.gdb && echo -e "source checker.py\npython test_the_test_suite()" >> test_test_suite.gdb && cat test_test_suite.gdb
-      #   working-directory: ./tests/cpp_test_project
-
-      # - name: Prepare test suite GDB script
-      #   run: cat .gdbinit >  test_suite.gdb && echo -e "source checker.py\npython test_suite()" >> test_suite.gdb && cat test_suite.gdb
-      #   working-directory: ./tests/cpp_test_project
-
-      # Runs a set of commands using the runners shell
-      - name: PERFORM GDB [TEST THE TEST SUITE]
-        run: gdb --se=./exe/main --command=Test_Test_Suite.gdb --batch
-        working-directory: ./tests/cpp_test_project
-        if: matrix.os == 'ubuntu-latest'
-
-      - name: PERFORM GDB [TEST SUITE]
-        run: gdb --se=./exe/main --command=Test_Suite.gdb --batch
-        working-directory: ./tests/cpp_test_project
-        if: matrix.os == 'ubuntu-latest'
 
       - name: PERFORM GDB [TEST THE TEST SUITE]
         run: gdb --se=./exe/main.exe --command=Test_Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
         if: matrix.os == 'windows-latest'
 
+
+      - name: PERFORM GDB [TEST THE TEST SUITE]
+        run: gdb --se=./exe/main --command=Test_Test_Suite.gdb --batch
+        working-directory: ./tests/cpp_test_project
+        if: matrix.os == 'ubuntu-latest'
+
+
+
       - name: PERFORM GDB [TEST SUITE]
         run: gdb --se=./exe/main.exe --command=Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
         if: matrix.os == 'windows-latest'
+
+
+      - name: PERFORM GDB [TEST SUITE]
+        run: gdb --se=./exe/main --command=Test_Suite.gdb --batch
+        working-directory: ./tests/cpp_test_project
+        if: matrix.os == 'ubuntu-latest'
+
 
   # This workflow contains a single job called "build"
   build-and-execute-offsets-finder:
