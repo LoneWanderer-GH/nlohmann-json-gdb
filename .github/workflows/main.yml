@@ -28,17 +28,24 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    - name: Chocolatey configuration
-      run: choco config list
+    # - name: Chocolatey configuration
+    #   run: choco config list
 
-    - name: Store Chocolatey cache dir
-      run: echo ::set-env name=CHOCOLATEY_CACHE_PATH::$(choco config get cacheLocation)
+    # - name: Store Chocolatey cache dir
+    #   run: echo ::set-env name=CHOCOLATEY_CACHE_PATH::$(choco config get cacheLocation)
+
+    - name: Get chocolatey cache dir
+      id: choco-cache-dir-path
+      run: echo "::set-output name=dir::$(choco config get cacheLocation)"
 
     - name: Cache the chocolatey download dir
       uses: actions/cache@v1
+      id: choco cache
       with:
-        path: \%CHOCOLATEY_CACHE_PATH%
+        path: ${{ steps.choco-cache-dir-path.outputs.dir }}
         key: ${{ runner.os }}-chocolatey-download-cache
+        restore-keys: |
+          ${{ runner.os }}-chocolatey-download-cache
 
     - name: Install relevant packets gnat-gpl which will hopefully provide gprbuild, gnat and gdb
       run: choco install gnat-gpl -v -d
