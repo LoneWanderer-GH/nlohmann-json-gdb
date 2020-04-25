@@ -6,7 +6,10 @@ name: CI
 # events but only for the master branch
 on:
   push:
-    branches: [ master, release, feature]
+    branches:
+      - master
+      - 'release/v*'
+      - feature/add-windows-ci #'feature/**'
   pull_request:
     branches: [ master, release]
 
