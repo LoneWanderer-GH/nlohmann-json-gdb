@@ -40,7 +40,7 @@ jobs:
 
     - name: Cache the chocolatey download dir
       uses: actions/cache@v1
-      id: choco cache
+      id: choco-cache
       with:
         path: ${{ steps.choco-cache-dir-path.outputs.dir }}
         key: ${{ runner.os }}-chocolatey-download-cache
