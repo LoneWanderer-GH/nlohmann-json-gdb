@@ -20,10 +20,11 @@ jobs:
     # The type of runner that the job will run on
     runs-on: windows-latest
     env:
-      TEST_DIR: ./tests/offsets_finder
+      TEST_DIR_PATH: ./tests/offsets_finder
       PYTHON_TEST: ./tests/Test_GDB_python.gdb
       GDB_TEST_SCRIPT: find_offsets.gdb
       EXE_FILE: ./exe/main.exe
+      GNAT_BIN_PATH: C:\GNAT\bin
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -33,8 +34,13 @@ jobs:
     - name: Install relevant packets gnat-gpl which will hopefully provide gprbuild, gnat and gdb
       run: choco install gnat-gpl -v -d
 
-    - name: Add GNAT to PATH, chocolatey cannot do it by itself ...
-      run: echo "::add-path::C:\GNAT\bin"
+    - name: Cache the chocolatey download dir
+      uses: actions/cache@v1
+      with:
+        path: $TEMP\chocolatey
+
+    - name: Add GNAT to PATH, chocolatey cannot do it by itself ?
+      run: echo "::add-path::$GNAT_BIN_PATH"
 
     - name: GNAT location and version
       run: gnat --version
@@ -46,19 +52,21 @@ jobs:
       run: gdb --version && gdb --configuration
 
     - name: Check GDB supports python
-      run: gdb --command=$PYTHON_TEST --batch
+      run: gdb
+      with:
+        args:  --command=$PYTHON_TEST --batch
 
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
     - name: Build the test project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
       run: pwd && ls -al && gprbuild -p -vm
-      working-directory: $TEST_DIR
+      working-directory: $TEST_DIR_PATH
 
     # Runs a set of commands using the runners shell
     - name: Run GDB session
       run: gdb --se=$EXE_FILE --command=$GDB_TEST_SCRIPT --batch
-      working-directory: $TEST_DIR
+      working-directory: $TEST_DIR_PATH
 
   # This workflow contains a single job called "build"
   build-and-execute-offsets-finder:
