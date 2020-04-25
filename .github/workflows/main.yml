@@ -63,7 +63,7 @@ jobs:
 
       - name: Install relevant packets gnat, texinfo, gdb, gprbuild
         run: sudo apt-get install gnat texinfo gdb gprbuild
-        if: runner.os == 'ubuntu-latest-latest'
+        if: runner.os == 'ubuntu-latest'
 
 
       - name: GDB location, version and configuration
@@ -83,7 +83,7 @@ jobs:
       - name: Run offsets_finder GDB session
         run: gdb --se=./exe/main.exe --command=find_offsets.gdb --batch
         working-directory: ./tests/offsets_finder
-        if: runner.os == 'ubuntu-latest-latest'
+        if: runner.os == 'ubuntu-latest'
 
       - name: Run offsets_finder GDB session
         run: gdb --se=./exe/main --command=find_offsets.gdb --batch
