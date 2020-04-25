@@ -81,12 +81,12 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: Run offsets_finder GDB session
-        run: gdb --se=./exe/main.exe --command=find_offsets.gdb --batch
+        run: gdb --se=./exe/main --command=find_offsets.gdb --batch
         working-directory: ./tests/offsets_finder
         if: matrix.os == 'ubuntu-latest'
 
       - name: Run offsets_finder GDB session
-        run: gdb --se=./exe/main --command=find_offsets.gdb --batch
+        run: gdb --se=./exe/main.exe --command=find_offsets.gdb --batch
         working-directory: ./tests/offsets_finder
         if: matrix.os == 'windows-latest'
 
