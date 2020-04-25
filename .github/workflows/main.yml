@@ -60,14 +60,16 @@ jobs:
     # - name: gprbuild location and version
     #   run: gprbuild --version
 
+
     - name: GDB location, version and configuration
       run: gdb --version && gdb --configuration
+
+    # # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    # - uses: actions/checkout@v2
 
     - name: Check GDB supports python
       run: gdb --command=./tests/Test_GDB_python.gdb --batch
 
-    # # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    # - uses: actions/checkout@v2
 
     # - name: Build the test project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
     #   run: pwd && ls -al && gprbuild -p -vm
