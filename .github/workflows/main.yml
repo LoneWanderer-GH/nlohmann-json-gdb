@@ -45,7 +45,7 @@ jobs:
 
 
     - name: Add GNAT to PATH, chocolatey cannot do it by itself ?
-      run: echo "::add-path::$GNAT_BIN_PATH"
+      run: echo "::add-path::%GNAT_BIN_PATH%"
 
     - name: GNAT location and version
       run: gnat --version
