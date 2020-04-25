@@ -31,13 +31,13 @@ jobs:
     - name: Chocolatey configuration
       run: choco config list
 
-    # - name: Store Chocolatey cache dir
-    #   run: echo ::set-env name=CHOCOLATEY_CACHE_PATH::$(choco config get cacheLocation)
+    - name: Store Chocolatey cache dir
+      run: echo ::set-env name=CHOCOLATEY_CACHE_PATH::$(choco config get cacheLocation)
 
     - name: Cache the chocolatey download dir
       uses: actions/cache@v1
       with:
-        path: $TEMP\chocolatey
+        path: %CHOCOLATEY_CACHE_PATH%
         key: ${{ runner.os }}-chocolatey-download-cache
 
     - name: Install relevant packets gnat-gpl which will hopefully provide gprbuild, gnat and gdb
