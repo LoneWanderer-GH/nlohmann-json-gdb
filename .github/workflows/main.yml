@@ -44,8 +44,8 @@ jobs:
       run: choco install gnat-gpl -v -d
 
 
-    # - name: Add GNAT to PATH, chocolatey cannot do it by itself ?
-    #   run: echo "::add-path::C:\GNAT\bin"
+    - name: Add GNAT to PATH, chocolatey cannot do it by itself ?
+      run: echo "::add-path::C:\GNAT\bin"
 
     # - name: GNAT location and version
     #   run: gnat --version
@@ -53,11 +53,11 @@ jobs:
     # - name: gprbuild location and version
     #   run: gprbuild --version
 
-    # - name: GDB location, version and configuration
-    #   run: gdb --version && gdb --configuration
+    - name: GDB location, version and configuration
+      run: gdb --version && gdb --configuration
 
-    # - name: Check GDB supports python
-    #   run: gdb --command=$PYTHON_TEST --batch
+    - name: Check GDB supports python
+      run: gdb --command=%PYTHON_TEST% --batch
 
     # # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     # - uses: actions/checkout@v2
