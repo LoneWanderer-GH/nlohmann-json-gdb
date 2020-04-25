@@ -30,101 +30,101 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # - name: Chocolatey configuration
-    #   run: choco config list
+      # - name: Chocolatey configuration
+      #   run: choco config list
 
-    # - name: Store Chocolatey cache dir
-    #   run: echo ::set-env name=CHOCOLATEY_CACHE_PATH::$(choco config get cacheLocation)
+      # - name: Store Chocolatey cache dir
+      #   run: echo ::set-env name=CHOCOLATEY_CACHE_PATH::$(choco config get cacheLocation)
 
-    # - name: Get chocolatey cache dir
-    #   id: choco-cache-dir-path
-    #   run: echo "::set-output name=dir::$(choco config get cacheLocation)"
+      # - name: Get chocolatey cache dir
+      #   id: choco-cache-dir-path
+      #   run: echo "::set-output name=dir::$(choco config get cacheLocation)"
 
-    # - name: Cache the chocolatey download dir
-    #   uses: actions/cache@v1
-    #   id: choco-cache
-    #   with:
-    #     path: ${{ steps.choco-cache-dir-path.outputs.dir }}
-    #     key: ${{ runner.os }}-chocolatey-download-cache
-    #     restore-keys: |
-    #       ${{ runner.os }}-chocolatey-download-cache
+      # - name: Cache the chocolatey download dir
+      #   uses: actions/cache@v1
+      #   id: choco-cache
+      #   with:
+      #     path: ${{ steps.choco-cache-dir-path.outputs.dir }}
+      #     key: ${{ runner.os }}-chocolatey-download-cache
+      #     restore-keys: |
+      #       ${{ runner.os }}-chocolatey-download-cache
 
-    - name: Install relevant packets gnat-gpl which will hopefully provide gprbuild, gnat and gdb
-      run: choco install gnat-gpl # -v -d
-      if: runner.os == 'windows-latest'
+      - name: Install relevant packets gnat-gpl which will hopefully provide gprbuild, gnat and gdb
+        run: choco install gnat-gpl # -v -d
+        if: runner.os == 'windows-latest'
 
-    - name: Add GNAT to PATH, chocolatey cannot do it by itself ?
-      run: echo "::add-path::C:\GNAT\bin"
-      if: runner.os == 'windows-latest'
+      - name: Add GNAT to PATH, chocolatey cannot do it by itself ?
+        run: echo "::add-path::C:\GNAT\bin"
+        if: runner.os == 'windows-latest'
 
-    - name: Install relevant packets gnat, texinfo, gdb, gprbuild
-      run: sudo apt-get install gnat texinfo gdb gprbuild
-      if: runner.os == 'ubuntu-latest-latest'
-
-
-    - name: GDB location, version and configuration
-      run: gdb --version && gdb --configuration
-
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
-
-    - name: Check GDB supports python
-      run: gdb --command=./tests/Test_GDB_python.gdb --batch
-
-    - name: Build offsets_finder (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
-      run: gprbuild -p -vm
-      working-directory: ./tests/offsets_finder
-
-    # Runs a set of commands using the runners shell
-    - name: Run offsets_finder GDB session
-      run: gdb --se=./exe/main.exe --command=find_offsets.gdb --batch
-      working-directory: ./tests/offsets_finder
-      if: runner.os == 'ubuntu-latest-latest'
-
-    - name: Run offsets_finder GDB session
-      run: gdb --se=./exe/main --command=find_offsets.gdb --batch
-      working-directory: ./tests/offsets_finder
-      if: runner.os == 'windows-latest'
+      - name: Install relevant packets gnat, texinfo, gdb, gprbuild
+        run: sudo apt-get install gnat texinfo gdb gprbuild
+        if: runner.os == 'ubuntu-latest-latest'
 
 
+      - name: GDB location, version and configuration
+        run: gdb --version && gdb --configuration
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Check GDB supports python
+        run: gdb --command=./tests/Test_GDB_python.gdb --batch
+
+      - name: Build offsets_finder (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
+        run: gprbuild -p -vm
+        working-directory: ./tests/offsets_finder
+
+      # Runs a set of commands using the runners shell
+      - name: Run offsets_finder GDB session
+        run: gdb --se=./exe/main.exe --command=find_offsets.gdb --batch
+        working-directory: ./tests/offsets_finder
+        if: runner.os == 'ubuntu-latest-latest'
+
+      - name: Run offsets_finder GDB session
+        run: gdb --se=./exe/main --command=find_offsets.gdb --batch
+        working-directory: ./tests/offsets_finder
+        if: runner.os == 'windows-latest'
 
 
-    - name: Build cpp_test_project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
-      run: pwd && ls -al && gprbuild -p -vm
-      working-directory: ./tests/cpp_test_project
 
-    # - name: Prepend GDB quit on error (and output file for check)
-    #   run: echo "maintenance set internal-error quit yes $(cat .gdbinit)" > .gdbinit && cat .gdbinit
-    #   working-directory: ./tests/cpp_test_project
 
-    # - name: Prepare test test suite GDB script
-    #   run: cat .gdbinit > test_test_suite.gdb && echo -e "source checker.py\npython test_the_test_suite()" >> test_test_suite.gdb && cat test_test_suite.gdb
-    #   working-directory: ./tests/cpp_test_project
+      - name: Build cpp_test_project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
+        run: pwd && ls -al && gprbuild -p -vm
+        working-directory: ./tests/cpp_test_project
 
-    # - name: Prepare test suite GDB script
-    #   run: cat .gdbinit >  test_suite.gdb && echo -e "source checker.py\npython test_suite()" >> test_suite.gdb && cat test_suite.gdb
-    #   working-directory: ./tests/cpp_test_project
+      # - name: Prepend GDB quit on error (and output file for check)
+      #   run: echo "maintenance set internal-error quit yes $(cat .gdbinit)" > .gdbinit && cat .gdbinit
+      #   working-directory: ./tests/cpp_test_project
 
-    # Runs a set of commands using the runners shell
-    - name: PERFORM GDB [TEST THE TEST SUITE]
-      run: gdb --se=./exe/main --command=Test_Test_Suite.gdb --batch
-      working-directory: ./tests/cpp_test_project
-      if: runner.os == 'ubuntu-latest'
+      # - name: Prepare test test suite GDB script
+      #   run: cat .gdbinit > test_test_suite.gdb && echo -e "source checker.py\npython test_the_test_suite()" >> test_test_suite.gdb && cat test_test_suite.gdb
+      #   working-directory: ./tests/cpp_test_project
 
-    - name: PERFORM GDB [TEST SUITE]
-      run: gdb --se=./exe/main --command=Test_Suite.gdb --batch
-      working-directory: ./tests/cpp_test_project
-      if: runner.os == 'ubuntu-latest'
+      # - name: Prepare test suite GDB script
+      #   run: cat .gdbinit >  test_suite.gdb && echo -e "source checker.py\npython test_suite()" >> test_suite.gdb && cat test_suite.gdb
+      #   working-directory: ./tests/cpp_test_project
 
-    - name: PERFORM GDB [TEST THE TEST SUITE]
-      run: gdb --se=./exe/main.exe --command=Test_Test_Suite.gdb --batch
-      working-directory: ./tests/cpp_test_project
-      if: runner.os == 'windows-latest'
+      # Runs a set of commands using the runners shell
+      - name: PERFORM GDB [TEST THE TEST SUITE]
+        run: gdb --se=./exe/main --command=Test_Test_Suite.gdb --batch
+        working-directory: ./tests/cpp_test_project
+        if: runner.os == 'ubuntu-latest'
 
-    - name: PERFORM GDB [TEST SUITE]
-      run: gdb --se=./exe/main.exe --command=Test_Suite.gdb --batch
-      working-directory: ./tests/cpp_test_project
-      if: runner.os == 'windows-latest'
+      - name: PERFORM GDB [TEST SUITE]
+        run: gdb --se=./exe/main --command=Test_Suite.gdb --batch
+        working-directory: ./tests/cpp_test_project
+        if: runner.os == 'ubuntu-latest'
+
+      - name: PERFORM GDB [TEST THE TEST SUITE]
+        run: gdb --se=./exe/main.exe --command=Test_Test_Suite.gdb --batch
+        working-directory: ./tests/cpp_test_project
+        if: runner.os == 'windows-latest'
+
+      - name: PERFORM GDB [TEST SUITE]
+        run: gdb --se=./exe/main.exe --command=Test_Suite.gdb --batch
+        working-directory: ./tests/cpp_test_project
+        if: runner.os == 'windows-latest'
 
   # This workflow contains a single job called "build"
   build-and-execute-offsets-finder:
