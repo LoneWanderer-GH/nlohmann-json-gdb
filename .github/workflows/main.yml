@@ -64,8 +64,8 @@ jobs:
     - name: GDB location, version and configuration
       run: gdb --version && gdb --configuration
 
-    # # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    # - uses: actions/checkout@v2
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
 
     - name: Check GDB supports python
       run: gdb --command=./tests/Test_GDB_python.gdb --batch
