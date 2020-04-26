@@ -86,7 +86,7 @@ jobs:
 
       - name: get the effective tar root dir
         id: get-tar-root-dir
-        run: ls -al && echo "::set-output name=dir::$(tar -tzf ./gdb-downloads/${{matrix.gdb}}${{env.FILE_EXT}} | head -1 | cut -f1 -d"/")
+        run: echo "::set-output name=dir::$(tar -tzf ./gdb-downloads/${{matrix.gdb}}${{env.FILE_EXT}} | head -1 | cut -f1 -d"/")
 
       - name: Configure
         run:  ls -al && ./configure
