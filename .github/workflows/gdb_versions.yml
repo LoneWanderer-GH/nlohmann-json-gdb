@@ -1,0 +1,159 @@
+name: CI-GDB-versions
+
+on:
+  push:
+    branches:
+      - master
+      #- 'release/v*'
+      - feature/ci-test-several*
+
+  pull_request:
+    branches: [ master, release]
+
+jobs:
+
+  test-all-gdb-releases:
+    env:
+      FTP_URL: ftp://sourceware.org/pub/gdb/releases/
+      FILE_EXT: .tar.gz
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          # - windows-latest
+        gdb:
+          - gdb-7.0.1a
+          - gdb-7.0a
+          - gdb-7.10.1
+          - gdb-7.10
+          - gdb-7.11.1
+          - gdb-7.11
+          - gdb-7.12.1
+          - gdb-7.12
+          - gdb-7.1a
+          - gdb-7.2a
+          - gdb-7.3.1
+          - gdb-7.3a
+          - gdb-7.4.1
+          - gdb-7.4
+          - gdb-7.5.1
+          - gdb-7.5
+          - gdb-7.6.1
+          - gdb-7.6.2
+          - gdb-7.6
+          - gdb-7.7.1
+          - gdb-7.7
+          - gdb-7.8.1
+          - gdb-7.8.2
+          - gdb-7.8
+          - gdb-7.9.1
+          - gdb-7.9
+          - gdb-8.0.1
+          - gdb-8.0
+          - gdb-8.1.1
+          - gdb-8.1
+          - gdb-8.2.1
+          - gdb-8.2
+          - gdb-8.3.1
+          - gdb-8.3
+          - gdb-9.1
+    steps:
+      - uses: actions/cache@v1
+        id: cache-gdb-src
+        with:
+          path: ./gdb-downloads
+          key: gdb-downloads-${{matrix.gdb}}${{env.FILE_EXT}}
+          restore-keys: |
+            gdb-downloads-${{matrix.gdb}}${{env.FILE_EXT}}
+
+      - name: Create downloads dir
+        mkdir: gdb-downloads
+
+      - name: Create directory for ${{matrix.gdb}}
+        run: mkdir ${{matrix.gdb}}
+
+      - name: Download ${{env.FTP_URL}}${{matrix.gdb}}${{env.FILE_EXT}}
+        run: wget ${{env.FTP_URL}}${{matrix.gdb}}${{env.FILE_EXT}}
+        working-directory: gdb-downloads
+        if: steps.cache-gdb-src.outputs.cache-hit != 'true'
+
+      # - name: Decompress
+      #   run: tar -xvzf ./gdb-downloads/${{matrix.gdb}}${{env.FILE_EXT}}
+
+
+      # - name: Configure
+      #   run:  ./configure
+      #   working-directory: ./${{matrix.gdb}}
+
+      # - name: Make
+      #   run: make
+      #   working-directory: ./${{matrix.gdb}}
+
+      # - name: Install
+      #   run: make install
+      #   working-directory: ./${{matrix.gdb}}
+
+
+      # - name: Check GDB version
+      #   run: gdb --version
+
+
+      # - uses: actions/checkout@v2
+
+
+      # - name: Check GDB supports python
+      #   run: gdb --command=./tests/Test_GDB_python.gdb --batch
+
+      # - name: Build offsets_finder (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
+      #   run: gprbuild -p -vm
+      #   working-directory: ./tests/offsets_finder
+
+      # # Runs a set of commands using the runners shell
+      # - name: Run offsets_finder GDB session
+      #   run: gdb --se=./exe/main --command=find_offsets.gdb --batch
+      #   working-directory: ./tests/offsets_finder
+      #   if: matrix.os == 'ubuntu-latest'
+
+      # - name: Run offsets_finder GDB session
+      #   run: gdb --se=./exe/main.exe --command=find_offsets.gdb --batch
+      #   working-directory: ./tests/offsets_finder
+      #   if: matrix.os == 'windows-latest'
+
+
+      # - name: Build cpp_test_project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
+      #   run: gprbuild -p -vm
+      #   working-directory: ./tests/cpp_test_project
+
+
+      # - name: PERFORM GDB [TEST THE TEST SUITE]
+      #   run: gdb --se=./exe/main.exe --command=Test_Test_Suite.gdb --batch
+      #   working-directory: ./tests/cpp_test_project
+      #   if: matrix.os == 'windows-latest'
+
+
+      # - name: PERFORM GDB [TEST THE TEST SUITE]
+      #   run: gdb --se=./exe/main --command=Test_Test_Suite.gdb --batch
+      #   working-directory: ./tests/cpp_test_project
+      #   if: matrix.os == 'ubuntu-latest'
+
+
+
+      # - name: PERFORM GDB [TEST SUITE]
+      #   run: gdb --se=./exe/main.exe --command=Test_Suite.gdb --batch
+      #   working-directory: ./tests/cpp_test_project
+      #   if: matrix.os == 'windows-latest'
+
+
+      # - name: PERFORM GDB [TEST SUITE]
+      #   run: gdb --se=./exe/main --command=Test_Suite.gdb --batch
+      #   working-directory: ./tests/cpp_test_project
+      #   if: matrix.os == 'ubuntu-latest'
+      - name: list pythons
+        run: ls /usr/bin/ | grep python
+
+      - name: Check python versions
+        run: python --version && python2 --version && python3 --version && python2.7.17 --version && python3.5.9 --version && python3.6.9 && python3.6.10 --version && python3.7.6 --version && python3.8.2 --version
+
+
+
