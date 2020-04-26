@@ -24,8 +24,8 @@ jobs:
           # - windows-latest
         gdb:
           - gdb-7.0.1a
-          - gdb-7.0a
-          - gdb-7.10.1
+          # - gdb-7.0a
+          # - gdb-7.10.1
           # - gdb-7.10
           # - gdb-7.11.1
           # - gdb-7.11
