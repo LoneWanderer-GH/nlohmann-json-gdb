@@ -59,6 +59,9 @@ jobs:
           - gdb-8.3
           - gdb-9.1
     steps:
+      - name: list pythons
+        run: ls /usr/bin/ | grep python
+
       - uses: actions/cache@v1
         id: cache-gdb-src
         with:
@@ -78,25 +81,24 @@ jobs:
         working-directory: gdb-downloads
         if: steps.cache-gdb-src.outputs.cache-hit != 'true'
 
-      # - name: Decompress
-      #   run: tar -xvzf ./gdb-downloads/${{matrix.gdb}}${{env.FILE_EXT}}
+      - name: Decompress
+        run: tar -xvzf ./gdb-downloads/${{matrix.gdb}}${{env.FILE_EXT}}
 
 
-      # - name: Configure
-      #   run:  ./configure
-      #   working-directory: ./${{matrix.gdb}}
+      - name: Configure
+        run:  ./configure
+        working-directory: ./${{matrix.gdb}}
 
-      # - name: Make
-      #   run: make
-      #   working-directory: ./${{matrix.gdb}}
+      - name: Make
+        run: make
+        working-directory: ./${{matrix.gdb}}
 
-      # - name: Install
-      #   run: make install
-      #   working-directory: ./${{matrix.gdb}}
+      - name: Install
+        run: make install
+        working-directory: ./${{matrix.gdb}}
 
-
-      # - name: Check GDB version
-      #   run: gdb --version
+      - name: Check GDB version
+        run: which gdb && gdb --version
 
 
       # - uses: actions/checkout@v2
@@ -149,11 +151,9 @@ jobs:
       #   run: gdb --se=./exe/main --command=Test_Suite.gdb --batch
       #   working-directory: ./tests/cpp_test_project
       #   if: matrix.os == 'ubuntu-latest'
-      - name: list pythons
-        run: ls /usr/bin/ | grep python
 
-      - name: Check python versions
-        run: python --version && python2 --version && python3 --version && python2.7.17 --version && python3.5.9 --version && python3.6.9 && python3.6.10 --version && python3.7.6 --version && python3.8.2 --version
+      # - name: Check python versions
+      #   run: python --version && python2 --version && python3 --version && python2.7.17 --version && python3.5.9 --version && python3.6.9 && python3.6.10 --version && python3.7.6 --version && python3.8.2 --version
 
 
 
