@@ -71,7 +71,7 @@ jobs:
             gdb-downloads-${{matrix.gdb}}${{env.FILE_EXT}}
 
       - name: Create downloads dir
-        run: mkdir gdb-downloads
+        run: mkdir -p gdb-downloads
 
       - name: Create directory for ${{matrix.gdb}}
         run: mkdir ${{matrix.gdb}}
