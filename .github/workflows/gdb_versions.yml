@@ -55,7 +55,7 @@ jobs:
           # - gdb-8.1
           # - gdb-8.2.1
           # - gdb-8.2
-          # - gdb-8.3.1
+          - gdb-8.3.1
           # - gdb-8.3
           # - gdb-9.1
     steps:
