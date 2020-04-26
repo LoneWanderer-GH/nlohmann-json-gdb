@@ -13,51 +13,53 @@ on:
 jobs:
 
   test-gdb-release:
+    name: ${{ matrix.gdb }}-${{ matrix.os }}
     env:
       FTP_URL: ftp://sourceware.org/pub/gdb/releases/
       FILE_EXT: .tar.gz
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: False # try all !
       matrix:
         os:
           - ubuntu-latest
           # - windows-latest
         gdb:
           - gdb-7.0.1a
-          # - gdb-7.0a
-          # - gdb-7.10.1
-          # - gdb-7.10
-          # - gdb-7.11.1
-          # - gdb-7.11
-          # - gdb-7.12.1
-          # - gdb-7.12
-          # - gdb-7.1a
-          # - gdb-7.2a
-          # - gdb-7.3.1
-          # - gdb-7.3a
-          # - gdb-7.4.1
-          # - gdb-7.4
-          # - gdb-7.5.1
-          # - gdb-7.5
-          # - gdb-7.6.1
-          # - gdb-7.6.2
-          # - gdb-7.6
-          # - gdb-7.7.1
-          # - gdb-7.7
-          # - gdb-7.8.1
-          # - gdb-7.8.2
-          # - gdb-7.8
-          # - gdb-7.9.1
-          # - gdb-7.9
-          # - gdb-8.0.1
-          # - gdb-8.0
-          # - gdb-8.1.1
-          # - gdb-8.1
-          # - gdb-8.2.1
-          # - gdb-8.2
+          - gdb-7.0a
+          - gdb-7.10.1
+          - gdb-7.10
+          - gdb-7.11.1
+          - gdb-7.11
+          - gdb-7.12.1
+          - gdb-7.12
+          - gdb-7.1a
+          - gdb-7.2a
+          - gdb-7.3.1
+          - gdb-7.3a
+          - gdb-7.4.1
+          - gdb-7.4
+          - gdb-7.5.1
+          - gdb-7.5
+          - gdb-7.6.1
+          - gdb-7.6.2
+          - gdb-7.6
+          - gdb-7.7.1
+          - gdb-7.7
+          - gdb-7.8.1
+          - gdb-7.8.2
+          - gdb-7.8
+          - gdb-7.9.1
+          - gdb-7.9
+          - gdb-8.0.1
+          - gdb-8.0
+          - gdb-8.1.1
+          - gdb-8.1
+          - gdb-8.2.1
+          - gdb-8.2
           - gdb-8.3.1
-          # - gdb-8.3
-          # - gdb-9.1
+          - gdb-8.3
+          - gdb-9.1
     steps:
       - name: list pythons
         run: ls /usr/bin/ | grep python
