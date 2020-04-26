@@ -12,7 +12,7 @@ on:
 
 jobs:
 
-  test-all-gdb-releases:
+  test-gdb-release:
     env:
       FTP_URL: ftp://sourceware.org/pub/gdb/releases/
       FILE_EXT: .tar.gz
@@ -81,24 +81,23 @@ jobs:
         working-directory: gdb-downloads
         if: steps.cache-gdb-src.outputs.cache-hit != 'true'
 
-      # - name: Decompress
-      #   run: tar -xvzf ./gdb-downloads/${{matrix.gdb}}${{env.FILE_EXT}}
+      - name: Decompress
+        run: tar -xvzf ./gdb-downloads/${{matrix.gdb}}${{env.FILE_EXT}} && ls -al
 
+      - name: Configure
+        run:  ls -al && ./configure
+        working-directory: ${{matrix.gdb}}
 
-      # - name: Configure
-      #   run:  ./configure
-      #   working-directory: ${{matrix.gdb}}
+      - name: Make
+        run: make
+        working-directory: ${{matrix.gdb}}
 
-      # - name: Make
-      #   run: make
-      #   working-directory: ${{matrix.gdb}}
+      - name: Install
+        run: make install
+        working-directory: ${{matrix.gdb}}
 
-      # - name: Install
-      #   run: make install
-      #   working-directory: ${{matrix.gdb}}
-
-      # - name: Check GDB version
-      #   run: which gdb && gdb --version
+      - name: Check GDB version
+        run: which gdb && gdb --version
 
 
       # - uses: actions/checkout@v2
