@@ -3,9 +3,9 @@ name: CI-GDB-releases-Ubuntu
 on:
   push:
     branches:
-      #- master
-      #- 'release/v*'
-      - feature/ci-test-several*
+      - master
+      - 'release/v*'
+      # - feature/ci-test-several*
 
   pull_request:
     branches: [ master, release]
