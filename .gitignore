@@ -19,3 +19,9 @@ assets/captures/
 tests/offsets_finder/before_run.txt
 
 tests/offsets_finder/types.txt
+.github/workflows/show_env.yml
+.github/workflows/gdb_versions_extractor.py
+
+.github/workflows/gdb-8.0.1.tar.gz
+
+.github/workflows/download_gdb_sources.yml.bak
