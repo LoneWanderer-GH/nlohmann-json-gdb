@@ -1,0 +1,209 @@
+name: CI-GDB-releases-Ubuntu
+
+on:
+  push:
+    branches:
+      - master
+      - 'release/v*'
+      # - feature/ci-test-several*
+
+  pull_request:
+    branches: [ master, release]
+
+jobs:
+
+  test-gdb-release:
+    name: ${{ matrix.gdb }}-${{ matrix.python }}-${{ matrix.os }}
+    env:
+      FTP_URL: ftp://sourceware.org/pub/gdb/releases/
+      FILE_EXT: .tar.gz
+      PWD_PATH: .
+      CONFIG_MAKE_DIR_PATH: .
+      DOWNLOAD_PATH: gdb-downloads
+      GDB_BUILD_PATH: build
+      TARGET_GDB_PATH: /home/runner/work/built-gdb
+      GDB_EXE: /home/runner/work/built-gdb/bin/gdb
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: False # try all !
+      matrix:
+        python: [python2, python3]
+        os:
+          - ubuntu-latest
+          # - windows-latest
+        gdb:
+          # all 7.x versions until 7.12.1 fail to compile with recent GCC due to several new warnings (treated as errors)
+          # see this thread for instance http://sourceware-org.1504.n7.nabble.com/RFA-0-3-Fix-various-bugs-found-by-static-analysis-td415799.html#a417864
+          # - gdb-7.0.1a
+          # - gdb-7.0a
+          # - gdb-7.1a
+          # - gdb-7.2a
+          # - gdb-7.3.1
+          # - gdb-7.3a
+          # - gdb-7.4.1
+          # - gdb-7.4
+          # - gdb-7.5.1
+          # - gdb-7.5
+          # - gdb-7.6.1
+          # - gdb-7.6.2
+          # - gdb-7.6
+          # - gdb-7.7.1
+          # - gdb-7.7
+          # - gdb-7.8.1
+          # - gdb-7.8.2
+          # - gdb-7.8
+          # - gdb-7.9.1
+          # - gdb-7.9
+          # - gdb-7.10.1
+          # - gdb-7.10
+          # - gdb-7.11.1
+          # - gdb-7.11
+          # - gdb-7.12
+          - gdb-7.12.1
+          - gdb-8.0.1
+          - gdb-8.0
+          - gdb-8.1.1
+          - gdb-8.1
+          - gdb-8.2.1
+          - gdb-8.2
+          - gdb-8.3.1
+          - gdb-8.3
+          - gdb-9.1
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: list pythons
+        run: ls /usr/bin/ | grep python
+
+      - name: list pythons
+        run: ls /usr/include -aRl | grep python
+
+      - name: Install relevant packets gnat, texinfo, gprbuild (hoping that gnat compiler might change anything to failrues observed until now)
+        run: sudo apt-get install gnat texinfo gprbuild
+        if: matrix.os == 'ubuntu-latest'
+
+      # - name: Install relevant packets gnat-gpl which will hopefully provide gprbuild, gnat and gdb
+      #   run: choco install gnat-gpl # -v -d
+      #   if: matrix.os == 'windows-latest'
+
+      # - name: Add GNAT to PATH, chocolatey cannot do it by itself ?
+      #   run: echo "::add-path::C:\GNAT\bin"
+      #   if: matrix.os == 'windows-latest'
+
+      - uses: actions/cache@v1
+        id: cache-gdb-src
+        with:
+          path: ./${{ env.DOWNLOAD_PATH }}
+          key: ${{ env.DOWNLOAD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}
+          restore-keys: |
+            ${{ env.DOWNLOAD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}
+
+      - uses: actions/cache@v1
+        id: cache-gdb-build
+        with:
+          path: ./${{ env.GDB_BUILD_PATH }}
+          key: ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}__
+          restore-keys: |
+            ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}__
+
+      - uses: actions/cache@v1
+        id: cache-gdb-bin
+        with:
+          path: ${{ env.TARGET_GDB_PATH }}
+          key: ${{ env.TARGET_GDB_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}__
+          restore-keys: |
+            ${{ env.TARGET_GDB_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}__
+
+      - name: Create target dir ${{ env.TARGET_GDB_PATH }}
+        run: sudo mkdir -p ${{ env.TARGET_GDB_PATH }}
+
+      - name: Create downloads dir
+        run: pwd && ls -al && mkdir -p ${{ env.DOWNLOAD_PATH }}
+
+
+      - name: Download ${{env.FTP_URL}}${{matrix.gdb}}${{env.FILE_EXT}}
+        run: wget ${{env.FTP_URL}}${{matrix.gdb}}${{env.FILE_EXT}}
+        working-directory: ${{ env.DOWNLOAD_PATH }}
+        if: steps.cache-gdb-src.outputs.cache-hit != 'true'
+
+      - name: Decompress
+        run: pwd && ls -al && tar -xzf ./${{ env.DOWNLOAD_PATH }}/${{matrix.gdb}}${{env.FILE_EXT}} && ls -al
+        if: steps.cache-gdb-bin.outputs.cache-hit != 'true'
+
+      - name: get the effective tar root dir (the newly created dir at job root dir, it can be different from targz !)
+        id: get-untar-root-dir
+        #run: echo "::set-output name=dir::$(tar -tzf ./${{ env.DOWNLOAD_PATH }}/${{matrix.gdb}}${{env.FILE_EXT}} | head -1 | cut -f1 -d"/")"
+        run: echo "::set-output name=dir::$(echo gdb-[0-9].*)"
+        if: steps.cache-gdb-bin.outputs.cache-hit != 'true'
+
+      - name: Prepare a separate build directory
+        run: pwd && ls -al && mkdir -p ${{ env.GDB_BUILD_PATH }}
+        #if: steps.cache-gdb-build.outputs.cache-hit != 'true'
+        if: steps.cache-gdb-bin.outputs.cache-hit != 'true'
+
+      - name: Configure
+        run: ../${{ steps.get-untar-root-dir.outputs.dir }}/configure --prefix=${{ env.TARGET_GDB_PATH }} --with-python=${{ matrix.python }}
+        working-directory: ./${{ env.GDB_BUILD_PATH }}
+        if: steps.cache-gdb-bin.outputs.cache-hit != 'true'
+
+      - name: Make all install
+        run: ls -al && sudo make all install
+        working-directory: ./${{ env.GDB_BUILD_PATH }}
+        if: steps.cache-gdb-bin.outputs.cache-hit != 'true'
+
+
+      - name: Check GDB version
+        run: sudo ${{ env.GDB_EXE }} --version
+
+
+      - name: Check GDB supports python
+        run: sudo ${{ env.GDB_EXE }} --command=./tests/Test_GDB_python.gdb --batch
+
+
+
+
+      # - name: Build offsets_finder (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
+      #   run: gprbuild -p -vm
+      #   working-directory: ./tests/offsets_finder
+
+      # # Runs a set of commands using the runners shell
+      # - name: Run offsets_finder GDB session
+      #   run: sudo ${{ env.GDB_EXE }} --se=./exe/main --command=find_offsets.gdb --batch
+      #   working-directory: ./tests/offsets_finder
+      #   if: matrix.os == 'ubuntu-latest'
+
+      # - name: Run offsets_finder GDB session
+      #   run: sudo ${{ env.GDB_EXE }} --se=./exe/main.exe --command=find_offsets.gdb --batch
+      #   working-directory: ./tests/offsets_finder
+      #   if: matrix.os == 'windows-latest'
+
+
+      - name: Build cpp_test_project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
+        run: gprbuild -p -vm
+        working-directory: ./tests/cpp_test_project
+
+
+      # - name: PERFORM GDB [TEST THE TEST SUITE]
+      #   run: sudo ${{ env.GDB_EXE }} --se=./exe/main.exe --command=Test_Test_Suite.gdb --batch
+      #   working-directory: ./tests/cpp_test_project
+      #   if: matrix.os == 'windows-latest'
+
+
+      - name: PERFORM GDB [TEST THE TEST SUITE]
+        run: sudo ${{ env.GDB_EXE }} --se=./exe/main --command=Test_Test_Suite.gdb --batch
+        working-directory: ./tests/cpp_test_project
+        if: matrix.os == 'ubuntu-latest'
+
+
+
+      # - name: PERFORM GDB [TEST SUITE]
+      #   run: sudo ${{ env.GDB_EXE }} --se=./exe/main.exe --command=Test_Suite.gdb --batch
+      #   working-directory: ./tests/cpp_test_project
+      #   if: matrix.os == 'windows-latest'
+
+
+      - name: PERFORM GDB [TEST SUITE]
+        run: sudo ${{ env.GDB_EXE }} --se=./exe/main --command=Test_Suite.gdb --batch
+        working-directory: ./tests/cpp_test_project
+        if: matrix.os == 'ubuntu-latest'
