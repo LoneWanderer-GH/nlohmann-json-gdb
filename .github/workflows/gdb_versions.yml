@@ -29,13 +29,13 @@ jobs:
           - ubuntu-latest
           # - windows-latest
         gdb:
-          - gdb-7.0.1a
+          # - gdb-7.0.1a
           # - gdb-7.0a
           # - gdb-7.10.1
           # - gdb-7.10
           # - gdb-7.11.1
           # - gdb-7.11
-          # - gdb-7.12.1
+          - gdb-7.12.1
           # - gdb-7.12
           # - gdb-7.1a
           # - gdb-7.2a
@@ -62,7 +62,7 @@ jobs:
           # - gdb-8.2.1
           # - gdb-8.2
           - gdb-8.3.1
-          - gdb-8.3
+          # - gdb-8.3
           - gdb-9.1
     steps:
       - name: list pythons
@@ -83,6 +83,14 @@ jobs:
           restore-keys: |
             ${{ env.DOWNLOAD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}
 
+      - uses: actions/cache@v1
+        id: cache-gdb-build
+        with:
+          path: ./${{ env.GDB_BUILD_PATH }}
+          key: ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}
+          restore-keys: |
+            ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}
+
       - name: Create downloads dir
         run: pwd && ls -al && mkdir -p ${{ env.DOWNLOAD_PATH }}
 
@@ -95,6 +103,7 @@ jobs:
       - name: Decompress
         run: pwd && ls -al && tar -xzf ./${{ env.DOWNLOAD_PATH }}/${{matrix.gdb}}${{env.FILE_EXT}} && ls -al
 
+
       - name: get the effective tar root dir (the newly created dir at job root dir, it can be different from targz !)
         id: get-untar-root-dir
         #run: echo "::set-output name=dir::$(tar -tzf ./${{ env.DOWNLOAD_PATH }}/${{matrix.gdb}}${{env.FILE_EXT}} | head -1 | cut -f1 -d"/")"
@@ -102,6 +111,7 @@ jobs:
 
       - name: Prepare a separate build directory
         run: pwd && ls -al && mkdir -p ${{ env.GDB_BUILD_PATH }}
+        if: steps.cache-gdb-build.outputs.cache-hit != 'true'
 
       - name: Configure
         run: ../${{ steps.get-untar-root-dir.outputs.dir }}/configure
@@ -114,6 +124,7 @@ jobs:
 
       - name: Check GDB version
         run: which gdb && gdb --version
+
 
 
       # - uses: actions/checkout@v2
