@@ -64,6 +64,13 @@ jobs:
       - name: list pythons
         run: ls /usr/bin/ | grep python
 
+      - name: list pythons
+        run: ls /usr/include -aRl | grep python
+
+      - name: Install relevant packets gnat, texinfo, gprbuild (hoping that gnat compiler might change anything to failrues observed until now)
+        run: sudo apt-get install gnat texinfo
+        if: matrix.os == 'ubuntu-latest'
+
       - uses: actions/cache@v1
         id: cache-gdb-src
         with:
@@ -90,17 +97,36 @@ jobs:
         id: get-tar-root-dir
         run: echo "::set-output name=dir::$(tar -tzf ./gdb-downloads/${{matrix.gdb}}${{env.FILE_EXT}} | head -1 | cut -f1 -d"/")"
 
+
+      - name: Set working directry for configure and make # = top dir of the tar (gdb-<version tag in tar>)
+        run: echo "::set-env name=working-dir=$(echo ./${{ steps.get-tar-root-dir.outputs.dir }})"
+
+      - name: Set command path for configure and make
+        run: echo "::set-env name=config-make-dir=$(echo .)" # = top dir of the tar (gdb-<version tag in tar>) (contains configure / make)
+
+      - name: Prepare a build directory for GDB 9.1
+        run: echo "::set-env name=working-dir=$(echo ./${{ env.working-dir }}/build)"
+        if: matrix.gdb == 'gdb-9.1'
+
+      - name: Create build directory for GDB 9.1
+        run: mkdir -p ${{ env.working-dir }}
+        if: matrix.gdb == 'gdb-9.1'
+
+      - name: Set command path for configure and make
+        run: echo "::set-env name=config-make-dir=$(echo ..)" # we work in ./tar root dir/build, so configure is in ../
+        if: matrix.gdb == 'gdb-9.1'
+
       - name: Configure
-        run:  ls -al && ./configure
-        working-directory: ./${{ steps.get-tar-root-dir.outputs.dir }}
+        run:  ${{ config-make-dir}}/configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
+        working-directory: ./${{ env.working-dir }}/
 
       - name: Make
-        run: make
-        working-directory: ./${{ steps.get-tar-root-dir.outputs.dir }}
+        run: sudo ${{ config-make-dir}}/make
+        working-directory: ./${{ env.working-dir }}/
 
       - name: Install
-        run: make install
-        working-directory: ./${{ steps.get-tar-root-dir.outputs.dir }}
+        run: sudo ${{ config-make-dir}}/make install
+        working-directory: ./${{ env.working-dir }}/ #
 
       - name: Check GDB version
         run: which gdb && gdb --version
