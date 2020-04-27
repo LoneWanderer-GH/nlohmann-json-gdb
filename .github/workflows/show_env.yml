@@ -3,7 +3,7 @@ name: Show env
 on:
   push:
     branches:
-      - '*'
+      - feature/ci-test-several*
 
 jobs:
   understand-envs:
