@@ -142,7 +142,7 @@ jobs:
       #   working-directory: ./${{ env.GDB_BUILD_PATH }}
       #   if: matrix.gdb == 'gdb-9.1'
       - name: Make all install
-        run: sudo ../${{ steps.get-untar-root-dir.outputs.dir }}/make all install
+        run: pwd && ls -al && sudo ../${{ steps.get-untar-root-dir.outputs.dir }}/make all install
         working-directory: ./${{ env.GDB_BUILD_PATH }}
 
 
