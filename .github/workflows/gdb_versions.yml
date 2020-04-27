@@ -99,7 +99,7 @@ jobs:
 
 
       - name: Set working directry for configure and make # = top dir of the tar (gdb-<version tag in tar>)
-        run: echo "::set-env name=working-dir=$(echo ./${{ steps.get-tar-root-dir.outputs.dir }})"
+        run: echo "::set-env name=config-make-dir=$(echo ./${{ steps.get-tar-root-dir.outputs.dir }})"
 
       - name: Set command path for configure and make
         run: echo "::set-env name=config-make-dir=$(echo .)" # = top dir of the tar (gdb-<version tag in tar>) (contains configure / make)
