@@ -27,10 +27,14 @@ jobs:
         run: |
           echo "::set-env name=SOME_VAR=$(pwd)"
 
+      - name: Is variable updated ?
+        run: |
+          echo "${{ env.SOME_VAR }}"
+
       - name: Set output pwd
         id: flex
         run: |
           echo "::set-output name=ze_pwd::$(pwd)"
 
       - name: echo ze_pwd
-        run: echo ./${{ steps.flex.outputs.ze_pwd }}
+        run: echo ${{ steps.flex.outputs.ze_pwd }}
