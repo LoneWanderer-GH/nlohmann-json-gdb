@@ -141,8 +141,13 @@ jobs:
       #   run: pwd && ls -al && sudo ../${{ steps.get-untar-root-dir.outputs.dir }}/make install
       #   working-directory: ./${{ env.GDB_BUILD_PATH }}
       #   if: matrix.gdb == 'gdb-9.1'
+
+      - name: Configure
+        run: ../${{ steps.get-untar-root-dir.outputs.dir }}/configure
+        working-directory: ./${{ env.GDB_BUILD_PATH }}
+
       - name: Make all install
-        run: pwd && ls -al && ls -al .. && ls -al ../${{ steps.get-untar-root-dir.outputs.dir }} && sudo ../${{ steps.get-untar-root-dir.outputs.dir }}/make all install
+        run: sudo ../${{ steps.get-untar-root-dir.outputs.dir }}/make all install
         working-directory: ./${{ env.GDB_BUILD_PATH }}
 
 
