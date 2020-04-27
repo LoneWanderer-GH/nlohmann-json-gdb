@@ -17,6 +17,8 @@ jobs:
     env:
       FTP_URL: ftp://sourceware.org/pub/gdb/releases/
       FILE_EXT: .tar.gz
+      PWD_PATH: .
+      CONFIG_MAKE_DIR_PATH: .
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: False # try all !
