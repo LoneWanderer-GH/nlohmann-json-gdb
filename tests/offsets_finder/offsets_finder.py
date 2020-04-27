@@ -58,7 +58,7 @@ SEARCH_RANGE = range(SEARCH_MIN, SEARCH_MAX, SEARCH_STEP)
 
 print("")
 print("Search range will be:")
-print("MIN: {} - MAX: {} - STEP: {}".format(SEARCH_MIN,SEARCH_MAX, SEARCH_STEP))
+print("MIN: {} - MAX: {} - STEP: {}".format(SEARCH_MIN, SEARCH_MAX, SEARCH_STEP))
 print("")
 
 """"""
@@ -83,7 +83,8 @@ def show_last_exception():
     print("{}: {}".format(exc_type.__name__, exc_value))
     print(" Detailed stacktrace ".center(80, HORIZONTAL_LINE))
     for (filename, lineno, method, code) in traceback.extract_tb(exc_traceback)[::-1]:
-        print("""{} File "{}", line {:d}, in {}()""".format(DOWN_ARROW, filename, lineno, method))
+        print("""{} File "{}", line {:d}, in {}()""".format(
+            DOWN_ARROW, filename, lineno, method))
         print("   {}    {}".format(RIGHT_ARROW, code))
     print(" Last 10 GDB commands ".center(80, HORIZONTAL_LINE))
     gdb.execute("show commands")
@@ -100,8 +101,6 @@ def show_last_exception():
     sys.exit(ERROR_PARSING_ERROR)
 
 
-
-
 def find_platform_type(regex, helper_type_name):
     # we suppose its a unique match, 4 lines output
     gdb.execute("info types {}".format(regex))
@@ -112,8 +111,8 @@ def find_platform_type(regex, helper_type_name):
     for l in lines:
         print(l)
     if len(lines) == 4:
-         # split last line, after line number and spaces
-         print("last line (the one we want): {}".format(lines[-1]))
+        # split last line, after line number and spaces
+        print("last line (the one we want): {}".format(lines[-1]))
         if gdb.VERSION.startswith("7."): # at least 7.12.1, I guess it applies to all 7.x versions ...
             # line number not print at beginning of command output line
             # nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, long long, unsigned long long, double, std::allocator, nlohmann::adl_serializer>;
@@ -177,7 +176,7 @@ def find_std_map_rb_tree_types():
     except:
         raise ValueError("Could not find the required RB tree types")
 
-## SET GLOBAL VARIABLES
+# SET GLOBAL VARIABLES
 try:
     NLOHMANN_JSON_TYPE_NAMESPACE, NLOHMANN_JSON_TYPE_POINTER, ENUM_JSON_DETAIL, NLOHMANN_JSON_MAP_KEY_TYPE = find_lohmann_types()
     STD_RB_TREE_NODE_TYPE = find_std_map_rb_tree_types()
