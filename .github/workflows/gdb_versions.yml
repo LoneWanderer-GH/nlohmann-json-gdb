@@ -61,9 +61,9 @@ jobs:
           # - gdb-8.1
           # - gdb-8.2.1
           # - gdb-8.2
-          # - gdb-8.3.1
-          # - gdb-8.3
-          # - gdb-9.1
+          - gdb-8.3.1
+          - gdb-8.3
+          - gdb-9.1
     steps:
       - name: list pythons
         run: ls /usr/bin/ | grep python
@@ -71,9 +71,9 @@ jobs:
       - name: list pythons
         run: ls /usr/include -aRl | grep python
 
-      # - name: Install relevant packets gnat, texinfo, gprbuild (hoping that gnat compiler might change anything to failrues observed until now)
-      #   run: sudo apt-get install gnat texinfo
-      #   if: matrix.os == 'ubuntu-latest'
+      - name: Install relevant packets gnat, texinfo, gprbuild (hoping that gnat compiler might change anything to failrues observed until now)
+        run: sudo apt-get install gnat texinfo
+        if: matrix.os == 'ubuntu-latest'
 
       - uses: actions/cache@v1
         id: cache-gdb-src
@@ -86,8 +86,6 @@ jobs:
       - name: Create downloads dir
         run: pwd && ls -al && mkdir -p ${{ env.DOWNLOAD_PATH }}
 
-      # - name: Create directory for ${{matrix.gdb}}
-      #   run: mkdir -p ${{matrix.gdb}}
 
       - name: Download ${{env.FTP_URL}}${{matrix.gdb}}${{env.FILE_EXT}}
         run: wget ${{env.FTP_URL}}${{matrix.gdb}}${{env.FILE_EXT}}
@@ -97,50 +95,13 @@ jobs:
       - name: Decompress
         run: pwd && ls -al && tar -xzf ./${{ env.DOWNLOAD_PATH }}/${{matrix.gdb}}${{env.FILE_EXT}} && ls -al
 
-      # - name: test echo
-      #   run: echo gdb-[0-9].*
-
       - name: get the effective tar root dir (the newly created dir at job root dir, it can be different from targz !)
         id: get-untar-root-dir
         #run: echo "::set-output name=dir::$(tar -tzf ./${{ env.DOWNLOAD_PATH }}/${{matrix.gdb}}${{env.FILE_EXT}} | head -1 | cut -f1 -d"/")"
         run: echo "::set-output name=dir::$(echo gdb-[0-9].*)"
 
-      # - name: The working-directory we would like is
-      #   run: echo ${{ steps.get-untar-root-dir.outputs.dir }}
-
-      # - name: Configure
-      #   run: pwd && ls -al && ./configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
-      #   working-directory: ./${{ steps.get-untar-root-dir.outputs.dir }}
-      #   if: matrix.gdb != 'gdb-9.1'
-
-      # - name: Make
-      #   run: pwd && ls -al && sudo ./make
-      #   working-directory: ./${{ steps.get-untar-root-dir.outputs.dir }}
-      #   if: matrix.gdb != 'gdb-9.1'
-
-      # - name: Install
-      #   run: pwd && ls -al && sudo ./make install
-      #   working-directory: ./${{ steps.get-untar-root-dir.outputs.dir }}
-      #   if: matrix.gdb != 'gdb-9.1'
-
-
       - name: Prepare a separate build directory
         run: pwd && ls -al && mkdir -p ${{ env.GDB_BUILD_PATH }}
-
-      # - name: Configure
-      #   run: pwd && ls -al &&  ../${{ steps.get-untar-root-dir.outputs.dir }}/configure # --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
-      #   working-directory: ./${{ env.GDB_BUILD_PATH }}
-      #   if: matrix.gdb == 'gdb-9.1'
-
-      # - name: Make
-      #   run: pwd && ls -al && sudo ../${{ steps.get-untar-root-dir.outputs.dir }}/make
-      #   working-directory: ./${{ env.GDB_BUILD_PATH }}
-      #   if: matrix.gdb == 'gdb-9.1'
-
-      # - name: Install
-      #   run: pwd && ls -al && sudo ../${{ steps.get-untar-root-dir.outputs.dir }}/make install
-      #   working-directory: ./${{ env.GDB_BUILD_PATH }}
-      #   if: matrix.gdb == 'gdb-9.1'
 
       - name: Configure
         run: ../${{ steps.get-untar-root-dir.outputs.dir }}/configure
@@ -150,44 +111,6 @@ jobs:
         run: ls -al && sudo make all install
         working-directory: ./${{ env.GDB_BUILD_PATH }}
 
-
-
-
-      # - name: Set working directry for configure and make # = top dir of the tar (gdb-<version tag in tar>)
-      #   id: pwd
-      #   run: echo "::set-output name=path=$(echo ./${{ steps.get-untar-root-dir.outputs.dir }})"
-      #   if: matrix.gdb == 'gdb-9.1'
-
-      # - name: Set command path for configure and make
-      #   id: config_make_dir
-      #   run: echo "::set-outpu name=path=." # = top dir of the tar (gdb-<version tag in tar>) (contains configure / make)
-
-      # - name: Prepare a build directory for GDB 9.1
-      #   run: echo "::set-env name=PWD_PATH=$(echo ./${{env.PWD_PATH}}/build)"
-      #   if: matrix.gdb == 'gdb-9.1'
-
-      # - name: Create build directory for GDB 9.1
-      #   run: mkdir -p ${{env.PWD_PATH}}
-      #   if: matrix.gdb == 'gdb-9.1'
-
-      # - name: Override command path for configure and make
-      #   run: echo "::set-env name=CONFIG_MAKE_DIR_PATH=.." # we work in ./tar root dir/build, so configure is in ../
-      #   if: matrix.gdb == 'gdb-9.1'
-
-      # # - name: Echo all env var
-      # #   run:
-
-      # - name: Configure
-      #   run:  pwd && ${{env.CONFIG_MAKE_DIR_PATH}}/configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
-      #   working-directory: ./${{env.PWD_PATH}}/
-
-      # - name: Make
-      #   run: sudo ${{env.CONFIG_MAKE_DIR_PATH}}/make
-      #   working-directory: ./${{env.PWD_PATH}}/
-
-      # - name: Install
-      #   run: sudo ${{env.CONFIG_MAKE_DIR_PATH}}/make install
-      #   working-directory: ./${{env.PWD_PATH}}/ #
 
       - name: Check GDB version
         run: which gdb && gdb --version
