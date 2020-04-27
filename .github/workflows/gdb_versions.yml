@@ -84,7 +84,7 @@ jobs:
             ${{ env.DOWNLOAD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}
 
       - name: Create downloads dir
-        run: mkdir -p ${{ env.DOWNLOAD_PATH }}
+        run: pwd && ls -al && mkdir -p ${{ env.DOWNLOAD_PATH }}
 
       # - name: Create directory for ${{matrix.gdb}}
       #   run: mkdir -p ${{matrix.gdb}}
@@ -95,44 +95,45 @@ jobs:
         if: steps.cache-gdb-src.outputs.cache-hit != 'true'
 
       - name: Decompress
-        run: tar -xvzf ./${{ env.DOWNLOAD_PATH }}/${{matrix.gdb}}${{env.FILE_EXT}} && ls -al
+        run: pwd && ls -al && tar -xzf ./${{ env.DOWNLOAD_PATH }}/${{matrix.gdb}}${{env.FILE_EXT}} && ls -al
 
-      - name: get the effective tar root dir (the newly created dir at job root dir)
+      - name: get the effective tar root dir (the newly created dir at job root dir, it can be different from targz !)
         id: get-untar-root-dir
-        run: echo "::set-output name=dir::$(tar -tzf ./${{ env.DOWNLOAD_PATH }}/${{matrix.gdb}}${{env.FILE_EXT}} | head -1 | cut -f1 -d"/")"
+        #run: echo "::set-output name=dir::$(tar -tzf ./${{ env.DOWNLOAD_PATH }}/${{matrix.gdb}}${{env.FILE_EXT}} | head -1 | cut -f1 -d"/")"
+        run: echo "::set-output name=dir::$(echo gdb-[0-9].*/)"
 
       - name: Configure
-        run:  configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
+        run: pwd && ls -al && configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
         working-directory: ./${{steps.get-untar-root-dir.dir}}/
         if: matrix.gdb != 'gdb-9.1'
 
       - name: Make
-        run: sudo make
+        run: pwd && ls -al && udo make
         working-directory: ./${{steps.get-untar-root-dir.dir}}/
         if: matrix.gdb != 'gdb-9.1'
 
       - name: Install
-        run: sudo make install
+        run: pwd && ls -al && sudo make install
         working-directory: ./${{steps.get-untar-root-dir.dir}}/
         if: matrix.gdb != 'gdb-9.1'
 
 
       - name: Prepare a separate build directory for GDB 9.1
-        run: mkdir -p ${{ env.GDB_BUILD_PATH }}
+        run: pwd && ls -al && mkdir -p ${{ env.GDB_BUILD_PATH }}
         if: matrix.gdb == 'gdb-9.1'
 
       - name: Configure
-        run:  ../${{steps.get-untar-root-dir.dir}}/configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
+        run: pwd && ls -al &&  ../${{steps.get-untar-root-dir.dir}}/configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
         working-directory: ./${{ env.GDB_BUILD_PATH }}
         if: matrix.gdb == 'gdb-9.1'
 
       - name: Make
-        run: sudo ../${{steps.get-untar-root-dir.dir}}/make
+        run: pwd && ls -al && sudo ../${{steps.get-untar-root-dir.dir}}/make
         working-directory: ./${{ env.GDB_BUILD_PATH }}
         if: matrix.gdb == 'gdb-9.1'
 
       - name: Install
-        run: sudo ../${{steps.get-untar-root-dir.dir}}/make install
+        run: pwd && ls -al && sudo ../${{steps.get-untar-root-dir.dir}}/make install
         working-directory: ./${{ env.GDB_BUILD_PATH }}
         if: matrix.gdb == 'gdb-9.1'
 
