@@ -6,6 +6,9 @@ on:
       - master
       - 'release/v*'
       - feature/**
+      paths:
+        - 'scripts/**'
+        - 'tests/**'
 
   pull_request:
     branches: [ master, release]

@@ -6,6 +6,9 @@ on:
       - master
       - 'release/v*'
       # - feature/ci-test-several*
+    paths:
+      - 'scripts/**'
+      - 'tests/**'
 
   pull_request:
     branches: [ master, release]
