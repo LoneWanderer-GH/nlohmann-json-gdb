@@ -109,17 +109,17 @@ jobs:
         run: echo ${{ steps.get-untar-root-dir.outputs.dir }}
 
       - name: Configure
-        run: pwd && ls -al && configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
+        run: pwd && ls -al && ./configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
         working-directory: ./${{ steps.get-untar-root-dir.outputs.dir }}
         if: matrix.gdb != 'gdb-9.1'
 
       - name: Make
-        run: pwd && ls -al && sudo make
+        run: pwd && ls -al && sudo ./make
         working-directory: ./${{ steps.get-untar-root-dir.outputs.dir }}
         if: matrix.gdb != 'gdb-9.1'
 
       - name: Install
-        run: pwd && ls -al && sudo make install
+        run: pwd && ls -al && sudo ./make install
         working-directory: ./${{ steps.get-untar-root-dir.outputs.dir }}
         if: matrix.gdb != 'gdb-9.1'
 
