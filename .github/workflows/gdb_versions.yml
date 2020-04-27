@@ -107,17 +107,17 @@ jobs:
 
       - name: Configure
         run: pwd && ls -al && configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
-        working-directory: ./${{ steps.get-untar-root-dir.dir }}/
+        working-directory: ${{ steps.get-untar-root-dir.dir }}
         if: matrix.gdb != 'gdb-9.1'
 
       - name: Make
         run: pwd && ls -al && udo make
-        working-directory: ./${{ steps.get-untar-root-dir.dir }}/
+        working-directory: ${{ steps.get-untar-root-dir.dir }}
         if: matrix.gdb != 'gdb-9.1'
 
       - name: Install
         run: pwd && ls -al && sudo make install
-        working-directory: ./${{ steps.get-untar-root-dir.dir }}/
+        working-directory: ${{ steps.get-untar-root-dir.dir }}
         if: matrix.gdb != 'gdb-9.1'
 
 
@@ -127,17 +127,17 @@ jobs:
 
       - name: Configure
         run: pwd && ls -al &&  ../${{ steps.get-untar-root-dir.dir }}/configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
-        working-directory: ./${{ env.GDB_BUILD_PATH }}
+        working-directory: ${{ env.GDB_BUILD_PATH }}
         if: matrix.gdb == 'gdb-9.1'
 
       - name: Make
         run: pwd && ls -al && sudo ../${{ steps.get-untar-root-dir.dir }}/make
-        working-directory: ./${{ env.GDB_BUILD_PATH }}
+        working-directory: ${{ env.GDB_BUILD_PATH }}
         if: matrix.gdb == 'gdb-9.1'
 
       - name: Install
         run: pwd && ls -al && sudo ../${{ steps.get-untar-root-dir.dir }}/make install
-        working-directory: ./${{ env.GDB_BUILD_PATH }}
+        working-directory: ${{ env.GDB_BUILD_PATH }}
         if: matrix.gdb == 'gdb-9.1'
 
 
