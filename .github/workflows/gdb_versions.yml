@@ -108,7 +108,7 @@ jobs:
         if: matrix.gdb == 'gdb-9.1'
 
       - name: Create build directory for GDB 9.1
-        run: mkdir -p $WORKING_DIR_PATH
+        run: mkdir -p ${{env.WORKING_DIR_PATH}}
         if: matrix.gdb == 'gdb-9.1'
 
       - name: Override command path for configure and make
@@ -116,15 +116,15 @@ jobs:
         if: matrix.gdb == 'gdb-9.1'
 
       - name: Configure
-        run:  $CONFIG_MAKE_DIR_PATH/configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
+        run:  pwd && ${{ env.CONFIG_MAKE_DIR_PATH }}/configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
         working-directory: ./${{ env.WORKING_DIR_PATH }}/
 
       - name: Make
-        run: sudo $CONFIG_MAKE_DIR_PATH/make
+        run: sudo ${{ env.CONFIG_MAKE_DIR_PATH }}/make
         working-directory: ./${{ env.WORKING_DIR_PATH }}/
 
       - name: Install
-        run: sudo $CONFIG_MAKE_DIR_PATH/make install
+        run: sudo ${{ env.CONFIG_MAKE_DIR_PATH }}/make install
         working-directory: ./${{ env.WORKING_DIR_PATH }}/ #
 
       - name: Check GDB version
