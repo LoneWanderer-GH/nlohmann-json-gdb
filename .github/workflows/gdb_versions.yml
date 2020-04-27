@@ -76,8 +76,16 @@ jobs:
         run: ls /usr/include -aRl | grep python
 
       - name: Install relevant packets gnat, texinfo, gprbuild (hoping that gnat compiler might change anything to failrues observed until now)
-        run: sudo apt-get install gnat texinfo
+        run: sudo apt-get install gnat texinfo gprbuild
         if: matrix.os == 'ubuntu-latest'
+
+      # - name: Install relevant packets gnat-gpl which will hopefully provide gprbuild, gnat and gdb
+      #   run: choco install gnat-gpl # -v -d
+      #   if: matrix.os == 'windows-latest'
+
+      # - name: Add GNAT to PATH, chocolatey cannot do it by itself ?
+      #   run: echo "::add-path::C:\GNAT\bin"
+      #   if: matrix.os == 'windows-latest'
 
       - uses: actions/cache@v1
         id: cache-gdb-src
