@@ -150,11 +150,11 @@ jobs:
 
 
       - name: Check GDB version
-        run: sudo ${{ GDB_EXE }} --version
+        run: sudo ${{ env.GDB_EXE }} --version
 
 
       - name: Check GDB supports python
-        run: sudo ${{ GDB_EXE }} --command=./tests/Test_GDB_python.gdb --batch
+        run: sudo ${{ env.GDB_EXE }} --command=./tests/Test_GDB_python.gdb --batch
 
       - name: Build offsets_finder (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
         run: gprbuild -p -vm
@@ -162,12 +162,12 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: Run offsets_finder GDB session
-        run: sudo ${{ GDB_EXE }} --se=./exe/main --command=find_offsets.gdb --batch
+        run: sudo ${{ env.GDB_EXE }} --se=./exe/main --command=find_offsets.gdb --batch
         working-directory: ./tests/offsets_finder
         if: matrix.os == 'ubuntu-latest'
 
       - name: Run offsets_finder GDB session
-        run: sudo ${{ GDB_EXE }} --se=./exe/main.exe --command=find_offsets.gdb --batch
+        run: sudo ${{ env.GDB_EXE }} --se=./exe/main.exe --command=find_offsets.gdb --batch
         working-directory: ./tests/offsets_finder
         if: matrix.os == 'windows-latest'
 
@@ -178,26 +178,26 @@ jobs:
 
 
       - name: PERFORM GDB [TEST THE TEST SUITE]
-        run: sudo ${{ GDB_EXE }} --se=./exe/main.exe --command=Test_Test_Suite.gdb --batch
+        run: sudo ${{ env.GDB_EXE }} --se=./exe/main.exe --command=Test_Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
         if: matrix.os == 'windows-latest'
 
 
       - name: PERFORM GDB [TEST THE TEST SUITE]
-        run: sudo ${{ GDB_EXE }} --se=./exe/main --command=Test_Test_Suite.gdb --batch
+        run: sudo ${{ env.GDB_EXE }} --se=./exe/main --command=Test_Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
         if: matrix.os == 'ubuntu-latest'
 
 
 
       - name: PERFORM GDB [TEST SUITE]
-        run: sudo ${{ GDB_EXE }} --se=./exe/main.exe --command=Test_Suite.gdb --batch
+        run: sudo ${{ env.GDB_EXE }} --se=./exe/main.exe --command=Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
         if: matrix.os == 'windows-latest'
 
 
       - name: PERFORM GDB [TEST SUITE]
-        run: sudo ${{ GDB_EXE }} --se=./exe/main --command=Test_Suite.gdb --batch
+        run: sudo ${{ env.GDB_EXE }} --se=./exe/main --command=Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
         if: matrix.os == 'ubuntu-latest'
 
