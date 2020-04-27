@@ -1,4 +1,4 @@
-name: CI-GDB-versions
+name: CI-GDB-releases-Ubuntu
 
 on:
   push:

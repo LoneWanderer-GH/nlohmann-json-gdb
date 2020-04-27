@@ -1,14 +1,11 @@
 # A simplistic GDB pretty printer for [nlohmann-json c++][3]
 
-![CI](https://github.com/LoneWanderer-GH/nlohmann-json-gdb/workflows/CI/badge.svg)
+![CI-OS-ubuntu-windows](https://github.com/LoneWanderer-GH/nlohmann-json-gdb/workflows/CI-OS-ubuntu-windows/badge.svg)
+![CI-GDB-releases-Ubuntu](https://github.com/LoneWanderer-GH/nlohmann-json-gdb/workflows/CI-GDB-releases-Ubuntu/badge.svg)
 
-Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3]
- - [x] compatible with a live inferior process and debug symbols
+Provides GDB script and python GDB pretty printer script that allows to to print a  [nlohmann / json][3]
+ - [x] compatible with a live inferior process with debug symbols
  - [x] compatible with core dump files with debug symbols
- - Tested on:
-   - Win Intel x64
-   - Raspbian arm x32
-   - Ubuntu x64 (Github CI)
 
 ---
 
@@ -28,8 +25,19 @@ Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3
 <a name="Prerequisites"></a>
 # 1. Prerequisites
 
- - *GDB 8.3+* debugger installed, ready to use.
-     Python support started with GDB 7, so it may work with versions starting GDB 7
+ - *GDB* debugger installed, ready to use.
+     - Tested on ubutun x64, with python 2.7 and python 3.6:
+         - GDB 7.12.1
+         - GDB 8.0
+         - GDB 8.0.1
+         - GDB 8.1
+         - GDB 8.1.1
+         - GDB 8.2
+         - GDB 8.2.1
+         - GDB 8.3
+         - GDB 8.3.1
+         - GDB 9.1
+     - Windows 8.3 with python 2.7.16. Given the successful tests on Ubuntu x64 with various GDB and python versions, it is likely to work for Windows too.
  - an executable to debug **with debug symbols available to GDB** which uses the [JSON lib 3.7.3][3]
  - or a core dump **with debug symbols available to GDB** (for linux users)
  - _Some [GDB commands knowledge][4] might be useful for your debug session to be successful ;)_
