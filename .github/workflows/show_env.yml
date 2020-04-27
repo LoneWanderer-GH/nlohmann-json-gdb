@@ -9,7 +9,12 @@ jobs:
   understand-envs:
     env:
       SOME_VAR: FOO
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
     steps:
       - name: Is variable exported?
         run: |
