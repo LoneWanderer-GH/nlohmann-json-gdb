@@ -21,8 +21,8 @@ jobs:
       CONFIG_MAKE_DIR_PATH: .
       DOWNLOAD_PATH: gdb-downloads
       GDB_BUILD_PATH: build
-      TARGET_GDB_PATH: /built-gdb
-      GDB_EXE: /built-gdb/bin/gdb
+      TARGET_GDB_PATH: /home/runner/work/built-gdb
+      GDB_EXE: /home/runner/work/built-gdb/bin/gdb
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: False # try all !

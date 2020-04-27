@@ -100,6 +100,8 @@ def find_platform_type(regex, helper_type_name):
     lines = info_types.splitlines()
     # correct command should have given  lines, the last one being the correct one
     if len(lines) == 4:
+        for l in lines:
+            print("### Log info types output : {}".format(l))
          # split last line, after line number and spaces
         t = re.split("^\d+:\s+", lines[-1])
         # transform result
