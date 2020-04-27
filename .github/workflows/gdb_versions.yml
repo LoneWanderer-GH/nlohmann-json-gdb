@@ -116,7 +116,7 @@ jobs:
         if: matrix.gdb == 'gdb-9.1'
 
       - name: Configure
-        run:  ${{ env.CONFIG_MAKE_DIR_PATH} }/configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
+        run:  ${{ env.CONFIG_MAKE_DIR_PATH }}/configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
         working-directory: ./${{ env.WORKING_DIR_PATH }}/
 
       - name: Make
