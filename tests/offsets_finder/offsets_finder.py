@@ -104,6 +104,7 @@ def show_last_exception():
 
 def find_platform_type(regex, helper_type_name):
     # we suppose its a unique match, 4 lines output
+    gdb.execute("info types {}".format(regex))
     info_types = gdb.execute("info types {}".format(regex), to_string=True)
     # make it multines
     lines = info_types.splitlines()
@@ -112,6 +113,7 @@ def find_platform_type(regex, helper_type_name):
         print(l)
     if len(lines) == 4:
          # split last line, after line number and spaces
+         print("last line (the one we want): {}".format(lines[-1]))
         if gdb.VERSION.startswith("7."): # at least 7.12.1, I guess it applies to all 7.x versions ...
             # line number not print at beginning of command output line
             # nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, long long, unsigned long long, double, std::allocator, nlohmann::adl_serializer>;
