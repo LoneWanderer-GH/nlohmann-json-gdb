@@ -105,9 +105,9 @@ def find_platform_type(regex, helper_type_name):
         if l.startswith(helper_type_name):
             # line format "type_name;"
             t = l.split(";")[0]
-         # split last line, after line number and spaces
         else:
-            # line format "number : type_name;"
+            # example
+            # 14708:  nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, long long, unsigned long long, double, std::allocator, nlohmann::adl_serializer>;
             t = re.split("^\d+:\s+", lines[-1])
             # transform result
             t = "".join(t[1::]).split(";")[0]
@@ -122,7 +122,7 @@ def find_platform_type(regex, helper_type_name):
 
     else:
         raise ValueError(
-            "Too many matching types found fro JSON ...\n{}".format("\n\t".join(lines)))
+            "Too many matching types found for JSON ...\n{}".format("\n\t".join(lines)))
 
 
 def find_platform_json_type(nlohmann_json_type_prefix):
@@ -371,6 +371,6 @@ def build_pretty_printer():
     return pp
 
 
-# executed at autoload
+# executed at script load
 gdb.printing.register_pretty_printer(
     gdb.current_objfile(), build_pretty_printer())

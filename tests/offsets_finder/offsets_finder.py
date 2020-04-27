@@ -102,31 +102,27 @@ def show_last_exception():
 
 
 def find_platform_type(regex, helper_type_name):
-    print("regex: {}".format(regex))
-    print("regex: {}".format(helper_type_name))
-    gdb.execute("help info types")
     # we suppose its a unique match, 4 lines output
-    gdb.execute("info types {}".format(regex))
     info_types = gdb.execute("info types {}".format(regex), to_string=True)
     # make it multines
     lines = info_types.splitlines()
     # correct command should have given  lines, the last one being the correct one
-    for l in lines:
-        print(l)
     if len(lines) == 4:
-        # split last line, after line number and spaces
-        print("last line (the one we want): {}".format(lines[-1]))
-        if gdb.VERSION.startswith("7."): # at least 7.12.1, I guess it applies to all 7.x versions ...
-            # line number not print at beginning of command output line
-            # nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, long long, unsigned long long, double, std::allocator, nlohmann::adl_serializer>;
-            t = lines[-1].split(";")[0]
+        for l in lines:
+            print("### Log info types output : {}".format(l))
+        l = lines[-1]
+        if l.startswith(helper_type_name):
+            # line format "type_name;"
+            t = l.split(";")[0]
         else:
+            # example
             # 14708:  nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, long long, unsigned long long, double, std::allocator, nlohmann::adl_serializer>;
             t = re.split("^\d+:\s+", lines[-1])
             # transform result
             t = "".join(t[1::]).split(";")[0]
         print("")
-        print("The researched {} type for this executable is".format(helper_type_name).center(80, "-"))
+        print("The researched {} type for this executable is".format(
+            helper_type_name).center(80, "-"))
         print("{}".format(t).center(80, "-"))
         print("(Using regex: {})".format(regex))
         print("".center(80, "-"))
@@ -134,7 +130,8 @@ def find_platform_type(regex, helper_type_name):
         return t
 
     else:
-        raise ValueError("Too many matching types found for JSON ...\n{}".format("\n\t".join(lines)))
+        raise ValueError(
+            "Too many matching types found for JSON ...\n{}".format("\n\t".join(lines)))
 
 
 def find_platform_json_type(nlohmann_json_type_prefix):
@@ -152,7 +149,8 @@ def find_lohmann_types():
     Finds essentials types to debug nlohmann JSONs
     """
 
-    nlohmann_json_type_namespace = find_platform_json_type(NLOHMANN_JSON_TYPE_PREFIX)
+    nlohmann_json_type_namespace = find_platform_json_type(
+        NLOHMANN_JSON_TYPE_PREFIX)
 
     # enum type that represents what is eaxtcly the current json object
     nlohmann_json_type = gdb.lookup_type(nlohmann_json_type_namespace)
@@ -165,7 +163,7 @@ def find_lohmann_types():
     for field in nlohmann_json_type.fields():
         if NLOHMANN_JSON_KIND_FIELD_NAME == field.name:
             enum_json_detail_type = field.type
-            break;
+            break
 
     enum_json_details = enum_json_detail_type.fields()
 
@@ -179,6 +177,7 @@ def find_std_map_rb_tree_types():
     except:
         raise ValueError("Could not find the required RB tree types")
 
+
 # SET GLOBAL VARIABLES
 try:
     NLOHMANN_JSON_TYPE_NAMESPACE, NLOHMANN_JSON_TYPE_POINTER, ENUM_JSON_DETAIL, NLOHMANN_JSON_MAP_KEY_TYPE = find_lohmann_types()
@@ -189,8 +188,8 @@ except:
 
 # convert the full namespace to only its litteral value
 # useful to access the corect variant of JSON m_value
-ENUM_LITERAL_NAMESPACE_TO_LITERAL = dict([ (f.name, f.name.split("::")[-1]) for f in ENUM_JSON_DETAIL])
-
+ENUM_LITERAL_NAMESPACE_TO_LITERAL = dict(
+    [(f.name, f.name.split("::")[-1]) for f in ENUM_JSON_DETAIL])
 
 
 def gdb_value_address_to_int(node):
@@ -242,7 +241,7 @@ class LohmannJSONPrinter(object):
         # traversing tree is a an adapted copy pasta from STL gdb parser
         # (http://www.yolinux.com/TUTORIALS/src/dbinit_stl_views-1.03.txt and similar links)
 
-        node      = o["_M_t"]["_M_impl"]["_M_header"]["_M_left"]
+        node = o["_M_t"]["_M_impl"]["_M_header"]["_M_left"]
         tree_size = o["_M_t"]["_M_impl"]["_M_node_count"]
 
         # for safety
@@ -405,9 +404,11 @@ def show_last_exception():
 
 def build_pretty_printer():
     pp = gdb.printing.RegexpCollectionPrettyPrinter("nlohmann_json")
-    pp.add_printer(NLOHMANN_JSON_TYPE_NAMESPACE, "^{}$".format(NLOHMANN_JSON_TYPE_POINTER), LohmannJSONPrinter)
+    pp.add_printer(NLOHMANN_JSON_TYPE_NAMESPACE, "^{}$".format(
+        NLOHMANN_JSON_TYPE_POINTER), LohmannJSONPrinter)
     return pp
 
 
-# executed at script load by GDB
-gdb.printing.register_pretty_printer(gdb.current_objfile(), build_pretty_printer())
+# executed at script load
+gdb.printing.register_pretty_printer(
+    gdb.current_objfile(), build_pretty_printer())
