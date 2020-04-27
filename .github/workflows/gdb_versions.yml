@@ -21,7 +21,8 @@ jobs:
       CONFIG_MAKE_DIR_PATH: .
       DOWNLOAD_PATH: gdb-downloads
       GDB_BUILD_PATH: build
-      TARGET_DIR: /built-gdb
+      TARGET_GDB_PATH: /built-gdb
+      GDB_EXE: /built-gdb/bin/gdb
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: False # try all !
@@ -107,11 +108,11 @@ jobs:
       - uses: actions/cache@v1
         id: cache-gdb-bin
         with:
-          path: ${{ env.TARGET_DIR }}
-          key: ${{ env.TARGET_DIR }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}
+          path: ${{ env.TARGET_GDB_PATH }}
+          key: ${{ env.TARGET_GDB_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}
 
-      - name: Create target dir ${{ env.TARGET_DIR }}
-        run: sudo mkdir -p ${{ env.TARGET_DIR }}
+      - name: Create target dir ${{ env.TARGET_GDB_PATH }}
+        run: sudo mkdir -p ${{ env.TARGET_GDB_PATH }}
 
       - name: Create downloads dir
         run: pwd && ls -al && mkdir -p ${{ env.DOWNLOAD_PATH }}
@@ -138,7 +139,7 @@ jobs:
         if: steps.cache-gdb-bin.outputs.cache-hit != 'true'
 
       - name: Configure
-        run: ../${{ steps.get-untar-root-dir.outputs.dir }}/configure --prefix=${{ env.TARGET_DIR }} --with-python=${{ matrix.python }}
+        run: ../${{ steps.get-untar-root-dir.outputs.dir }}/configure --prefix=${{ env.TARGET_GDB_PATH }} --with-python=${{ matrix.python }}
         working-directory: ./${{ env.GDB_BUILD_PATH }}
         if: steps.cache-gdb-bin.outputs.cache-hit != 'true'
 
@@ -149,11 +150,11 @@ jobs:
 
 
       - name: Check GDB version
-        run: sudo ${{ env.TARGET_DIR }}/gdb --version
+        run: sudo ${{ GDB_EXE }} --version
 
 
       - name: Check GDB supports python
-        run: sudo ${{ env.TARGET_DIR }}/gdb --command=./tests/Test_GDB_python.gdb --batch
+        run: sudo ${{ GDB_EXE }} --command=./tests/Test_GDB_python.gdb --batch
 
       - name: Build offsets_finder (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
         run: gprbuild -p -vm
@@ -161,12 +162,12 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: Run offsets_finder GDB session
-        run: sudo ${{ env.TARGET_DIR }}/gdb --se=./exe/main --command=find_offsets.gdb --batch
+        run: sudo ${{ GDB_EXE }} --se=./exe/main --command=find_offsets.gdb --batch
         working-directory: ./tests/offsets_finder
         if: matrix.os == 'ubuntu-latest'
 
       - name: Run offsets_finder GDB session
-        run: sudo ${{ env.TARGET_DIR }}/gdb --se=./exe/main.exe --command=find_offsets.gdb --batch
+        run: sudo ${{ GDB_EXE }} --se=./exe/main.exe --command=find_offsets.gdb --batch
         working-directory: ./tests/offsets_finder
         if: matrix.os == 'windows-latest'
 
@@ -177,26 +178,26 @@ jobs:
 
 
       - name: PERFORM GDB [TEST THE TEST SUITE]
-        run: sudo ${{ env.TARGET_DIR }}/gdb --se=./exe/main.exe --command=Test_Test_Suite.gdb --batch
+        run: sudo ${{ GDB_EXE }} --se=./exe/main.exe --command=Test_Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
         if: matrix.os == 'windows-latest'
 
 
       - name: PERFORM GDB [TEST THE TEST SUITE]
-        run: sudo ${{ env.TARGET_DIR }}/gdb --se=./exe/main --command=Test_Test_Suite.gdb --batch
+        run: sudo ${{ GDB_EXE }} --se=./exe/main --command=Test_Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
         if: matrix.os == 'ubuntu-latest'
 
 
 
       - name: PERFORM GDB [TEST SUITE]
-        run: sudo ${{ env.TARGET_DIR }}/gdb --se=./exe/main.exe --command=Test_Suite.gdb --batch
+        run: sudo ${{ GDB_EXE }} --se=./exe/main.exe --command=Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
         if: matrix.os == 'windows-latest'
 
 
       - name: PERFORM GDB [TEST SUITE]
-        run: sudo ${{ env.TARGET_DIR }}/gdb --se=./exe/main --command=Test_Suite.gdb --batch
+        run: sudo ${{ GDB_EXE }} --se=./exe/main --command=Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
         if: matrix.os == 'ubuntu-latest'
 
