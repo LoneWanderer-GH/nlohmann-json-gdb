@@ -25,3 +25,4 @@ tests/offsets_finder/types.txt
 .github/workflows/gdb-8.0.1.tar.gz
 
 .github/workflows/download_gdb_sources.yml.bak
+test_github_http_api.py
