@@ -108,6 +108,8 @@ def find_platform_type(regex, helper_type_name):
     # make it multines
     lines = info_types.splitlines()
     # correct command should have given  lines, the last one being the correct one
+    for l in lines:
+        print(l)
     if len(lines) == 4:
          # split last line, after line number and spaces
         if gdb.VERSION.startswith("7."): # at least 7.12.1, I guess it applies to all 7.x versions ...
