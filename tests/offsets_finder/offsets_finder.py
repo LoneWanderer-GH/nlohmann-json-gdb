@@ -102,6 +102,9 @@ def show_last_exception():
 
 
 def find_platform_type(regex, helper_type_name):
+    print("regex: {}".format(regex))
+    print("regex: {}".format(helper_type_name))
+    gdb.execute("help info types")
     # we suppose its a unique match, 4 lines output
     gdb.execute("info types {}".format(regex))
     info_types = gdb.execute("info types {}".format(regex), to_string=True)

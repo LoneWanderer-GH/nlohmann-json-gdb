@@ -21,6 +21,7 @@ jobs:
       CONFIG_MAKE_DIR_PATH: .
       DOWNLOAD_PATH: gdb-downloads
       GDB_BUILD_PATH: build
+      TARGET_DIR: /built-gdb
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: False # try all !
@@ -103,6 +104,15 @@ jobs:
           restore-keys: |
             ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}
 
+      - uses: actions/cache@v1
+        id: cache-gdb-bin
+        with:
+          path: ${{ env.TARGET_DIR }}
+          key: ${{ env.TARGET_DIR }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}
+
+      - name: Create target dir ${{ env.TARGET_DIR }}
+        run: sudo mkdir -p ${{ env.TARGET_DIR }}
+
       - name: Create downloads dir
         run: pwd && ls -al && mkdir -p ${{ env.DOWNLOAD_PATH }}
 
@@ -114,32 +124,36 @@ jobs:
 
       - name: Decompress
         run: pwd && ls -al && tar -xzf ./${{ env.DOWNLOAD_PATH }}/${{matrix.gdb}}${{env.FILE_EXT}} && ls -al
-
+        if: steps.cache-gdb-bin.outputs.cache-hit != 'true'
 
       - name: get the effective tar root dir (the newly created dir at job root dir, it can be different from targz !)
         id: get-untar-root-dir
         #run: echo "::set-output name=dir::$(tar -tzf ./${{ env.DOWNLOAD_PATH }}/${{matrix.gdb}}${{env.FILE_EXT}} | head -1 | cut -f1 -d"/")"
         run: echo "::set-output name=dir::$(echo gdb-[0-9].*)"
+        if: steps.cache-gdb-bin.outputs.cache-hit != 'true'
 
       - name: Prepare a separate build directory
         run: pwd && ls -al && mkdir -p ${{ env.GDB_BUILD_PATH }}
-        if: steps.cache-gdb-build.outputs.cache-hit != 'true'
+        #if: steps.cache-gdb-build.outputs.cache-hit != 'true'
+        if: steps.cache-gdb-bin.outputs.cache-hit != 'true'
 
       - name: Configure
-        run: ../${{ steps.get-untar-root-dir.outputs.dir }}/configure --with-python=${{ matrix.python }}
+        run: ../${{ steps.get-untar-root-dir.outputs.dir }}/configure --prefix=${{ env.TARGET_DIR }} --with-python=${{ matrix.python }}
         working-directory: ./${{ env.GDB_BUILD_PATH }}
+        if: steps.cache-gdb-bin.outputs.cache-hit != 'true'
 
       - name: Make all install
         run: ls -al && sudo make all install
         working-directory: ./${{ env.GDB_BUILD_PATH }}
+        if: steps.cache-gdb-bin.outputs.cache-hit != 'true'
 
 
       - name: Check GDB version
-        run: which gdb && gdb --version
+        run: sudo ${{ env.TARGET_DIR }}/gdb --version
 
 
       - name: Check GDB supports python
-        run: gdb --command=./tests/Test_GDB_python.gdb --batch
+        run: sudo ${{ env.TARGET_DIR }}/gdb --command=./tests/Test_GDB_python.gdb --batch
 
       - name: Build offsets_finder (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
         run: gprbuild -p -vm
@@ -147,12 +161,12 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: Run offsets_finder GDB session
-        run: gdb --se=./exe/main --command=find_offsets.gdb --batch
+        run: sudo ${{ env.TARGET_DIR }}/gdb --se=./exe/main --command=find_offsets.gdb --batch
         working-directory: ./tests/offsets_finder
         if: matrix.os == 'ubuntu-latest'
 
       - name: Run offsets_finder GDB session
-        run: gdb --se=./exe/main.exe --command=find_offsets.gdb --batch
+        run: sudo ${{ env.TARGET_DIR }}/gdb --se=./exe/main.exe --command=find_offsets.gdb --batch
         working-directory: ./tests/offsets_finder
         if: matrix.os == 'windows-latest'
 
@@ -163,26 +177,26 @@ jobs:
 
 
       - name: PERFORM GDB [TEST THE TEST SUITE]
-        run: gdb --se=./exe/main.exe --command=Test_Test_Suite.gdb --batch
+        run: sudo ${{ env.TARGET_DIR }}/gdb --se=./exe/main.exe --command=Test_Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
         if: matrix.os == 'windows-latest'
 
 
       - name: PERFORM GDB [TEST THE TEST SUITE]
-        run: gdb --se=./exe/main --command=Test_Test_Suite.gdb --batch
+        run: sudo ${{ env.TARGET_DIR }}/gdb --se=./exe/main --command=Test_Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
         if: matrix.os == 'ubuntu-latest'
 
 
 
       - name: PERFORM GDB [TEST SUITE]
-        run: gdb --se=./exe/main.exe --command=Test_Suite.gdb --batch
+        run: sudo ${{ env.TARGET_DIR }}/gdb --se=./exe/main.exe --command=Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
         if: matrix.os == 'windows-latest'
 
 
       - name: PERFORM GDB [TEST SUITE]
-        run: gdb --se=./exe/main --command=Test_Suite.gdb --batch
+        run: sudo ${{ env.TARGET_DIR }}/gdb --se=./exe/main --command=Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
         if: matrix.os == 'ubuntu-latest'
 
