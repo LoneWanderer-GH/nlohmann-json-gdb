@@ -3,9 +3,9 @@ name: CI-GDB-versions
 on:
   push:
     branches:
-      - master
+      #- master
       #- 'release/v*'
-      # - feature/ci-test-several*
+      - feature/ci-test-several*
 
   pull_request:
     branches: [ master, release]
@@ -19,6 +19,8 @@ jobs:
       FILE_EXT: .tar.gz
       PWD_PATH: .
       CONFIG_MAKE_DIR_PATH: .
+      DOWNLOAD_PATH: gdb-downloads
+      GDB_BUILD_PATH: build
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: False # try all !
@@ -76,61 +78,103 @@ jobs:
       - uses: actions/cache@v1
         id: cache-gdb-src
         with:
-          path: ./gdb-downloads
-          key: gdb-downloads-${{matrix.gdb}}${{env.FILE_EXT}}
+          path: ./${{ env.DOWNLOAD_PATH }}
+          key: ${{ env.DOWNLOAD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}
           restore-keys: |
-            gdb-downloads-${{matrix.gdb}}${{env.FILE_EXT}}
+            ${{ env.DOWNLOAD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}
 
       - name: Create downloads dir
-        run: mkdir -p gdb-downloads
+        run: mkdir -p ${{ env.DOWNLOAD_PATH }}
 
-      - name: Create directory for ${{matrix.gdb}}
-        run: mkdir ${{matrix.gdb}}
+      # - name: Create directory for ${{matrix.gdb}}
+      #   run: mkdir -p ${{matrix.gdb}}
 
       - name: Download ${{env.FTP_URL}}${{matrix.gdb}}${{env.FILE_EXT}}
         run: wget ${{env.FTP_URL}}${{matrix.gdb}}${{env.FILE_EXT}}
-        working-directory: gdb-downloads
+        working-directory: ${{ env.DOWNLOAD_PATH }}
         if: steps.cache-gdb-src.outputs.cache-hit != 'true'
 
       - name: Decompress
-        run: tar -xvzf ./gdb-downloads/${{matrix.gdb}}${{env.FILE_EXT}} && ls -al
+        run: tar -xvzf ./${{ env.DOWNLOAD_PATH }}/${{matrix.gdb}}${{env.FILE_EXT}} && ls -al
 
-      - name: get the effective tar root dir
-        id: get-tar-root-dir
-        run: echo "::set-output name=dir::$(tar -tzf ./gdb-downloads/${{matrix.gdb}}${{env.FILE_EXT}} | head -1 | cut -f1 -d"/")"
-
-      - name: Set working directry for configure and make # = top dir of the tar (gdb-<version tag in tar>)
-        run: echo "::set-env name=PWD_PATH=$(echo ./${{ steps.get-tar-root-dir.outputs.dir }})"
-
-      - name: Set command path for configure and make
-        run: echo "::set-env name=CONFIG_MAKE_DIR_PATH=." # = top dir of the tar (gdb-<version tag in tar>) (contains configure / make)
-
-      - name: Prepare a build directory for GDB 9.1
-        run: echo "::set-env name=PWD_PATH=$(echo ./${{env.PWD_PATH}}/build)"
-        if: matrix.gdb == 'gdb-9.1'
-
-      - name: Create build directory for GDB 9.1
-        run: mkdir -p ${{env.PWD_PATH}}
-        if: matrix.gdb == 'gdb-9.1'
-
-      - name: Override command path for configure and make
-        run: echo "::set-env name=CONFIG_MAKE_DIR_PATH=.." # we work in ./tar root dir/build, so configure is in ../
-        if: matrix.gdb == 'gdb-9.1'
-
-      # - name: Echo all env var
-      #   run:
+      - name: get the effective tar root dir (the newly created dir at job root dir)
+        id: get-untar-root-dir
+        run: echo "::set-output name=dir::$(tar -tzf ./${{ env.DOWNLOAD_PATH }}/${{matrix.gdb}}${{env.FILE_EXT}} | head -1 | cut -f1 -d"/")"
 
       - name: Configure
-        run:  pwd && ${{env.CONFIG_MAKE_DIR_PATH}}/configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
-        working-directory: ./${{env.PWD_PATH}}/
+        run:  configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
+        working-directory: ./${{steps.get-untar-root-dir.dir}}/
+        if: matrix.gdb != 'gdb-9.1'
 
       - name: Make
-        run: sudo ${{env.CONFIG_MAKE_DIR_PATH}}/make
-        working-directory: ./${{env.PWD_PATH}}/
+        run: sudo make
+        working-directory: ./${{steps.get-untar-root-dir.dir}}/
+        if: matrix.gdb != 'gdb-9.1'
 
       - name: Install
-        run: sudo ${{env.CONFIG_MAKE_DIR_PATH}}/make install
-        working-directory: ./${{env.PWD_PATH}}/ #
+        run: sudo make install
+        working-directory: ./${{steps.get-untar-root-dir.dir}}/
+        if: matrix.gdb != 'gdb-9.1'
+
+
+      - name: Prepare a separate build directory for GDB 9.1
+        run: mkdir -p ${{ env.GDB_BUILD_PATH }}
+        if: matrix.gdb == 'gdb-9.1'
+
+      - name: Configure
+        run:  ../${{steps.get-untar-root-dir.dir}}/configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
+        working-directory: ./${{ env.GDB_BUILD_PATH }}
+        if: matrix.gdb == 'gdb-9.1'
+
+      - name: Make
+        run: sudo ../${{steps.get-untar-root-dir.dir}}/make
+        working-directory: ./${{ env.GDB_BUILD_PATH }}
+        if: matrix.gdb == 'gdb-9.1'
+
+      - name: Install
+        run: sudo ../${{steps.get-untar-root-dir.dir}}/make install
+        working-directory: ./${{ env.GDB_BUILD_PATH }}
+        if: matrix.gdb == 'gdb-9.1'
+
+
+
+
+
+      # - name: Set working directry for configure and make # = top dir of the tar (gdb-<version tag in tar>)
+      #   id: pwd
+      #   run: echo "::set-output name=path=$(echo ./${{ steps.get-untar-root-dir.outputs.dir }})"
+      #   if: matrix.gdb == 'gdb-9.1'
+
+      # - name: Set command path for configure and make
+      #   id: config_make_dir
+      #   run: echo "::set-outpu name=path=." # = top dir of the tar (gdb-<version tag in tar>) (contains configure / make)
+
+      # - name: Prepare a build directory for GDB 9.1
+      #   run: echo "::set-env name=PWD_PATH=$(echo ./${{env.PWD_PATH}}/build)"
+      #   if: matrix.gdb == 'gdb-9.1'
+
+      # - name: Create build directory for GDB 9.1
+      #   run: mkdir -p ${{env.PWD_PATH}}
+      #   if: matrix.gdb == 'gdb-9.1'
+
+      # - name: Override command path for configure and make
+      #   run: echo "::set-env name=CONFIG_MAKE_DIR_PATH=.." # we work in ./tar root dir/build, so configure is in ../
+      #   if: matrix.gdb == 'gdb-9.1'
+
+      # # - name: Echo all env var
+      # #   run:
+
+      # - name: Configure
+      #   run:  pwd && ${{env.CONFIG_MAKE_DIR_PATH}}/configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
+      #   working-directory: ./${{env.PWD_PATH}}/
+
+      # - name: Make
+      #   run: sudo ${{env.CONFIG_MAKE_DIR_PATH}}/make
+      #   working-directory: ./${{env.PWD_PATH}}/
+
+      # - name: Install
+      #   run: sudo ${{env.CONFIG_MAKE_DIR_PATH}}/make install
+      #   working-directory: ./${{env.PWD_PATH}}/ #
 
       - name: Check GDB version
         run: which gdb && gdb --version
