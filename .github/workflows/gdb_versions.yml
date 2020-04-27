@@ -103,17 +103,17 @@ jobs:
         id: cache-gdb-build
         with:
           path: ./${{ env.GDB_BUILD_PATH }}
-          key: ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}
+          key: ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}_
           restore-keys: |
-            ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}
+            ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}_
 
       - uses: actions/cache@v1
         id: cache-gdb-bin
         with:
           path: ${{ env.TARGET_GDB_PATH }}
-          key: ${{ env.TARGET_GDB_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}
+          key: ${{ env.TARGET_GDB_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}_
           restore-keys: |
-            ${{ env.TARGET_GDB_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}
+            ${{ env.TARGET_GDB_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}_
 
       - name: Create target dir ${{ env.TARGET_GDB_PATH }}
         run: sudo mkdir -p ${{ env.TARGET_GDB_PATH }}
