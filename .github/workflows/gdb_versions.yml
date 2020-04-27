@@ -115,8 +115,8 @@ jobs:
         run: echo "::set-env name=CONFIG_MAKE_DIR_PATH=.." # we work in ./tar root dir/build, so configure is in ../
         if: matrix.gdb == 'gdb-9.1'
 
-      - name: Echo all env var
-        run:
+      # - name: Echo all env var
+      #   run:
 
       - name: Configure
         run:  pwd && ${{env.CONFIG_MAKE_DIR_PATH}}/configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
