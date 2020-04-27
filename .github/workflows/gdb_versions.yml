@@ -147,7 +147,7 @@ jobs:
         working-directory: ./${{ env.GDB_BUILD_PATH }}
 
       - name: Make all install
-        run: ls -al && sudo ./make all install
+        run: ls -al && sudo make all install
         working-directory: ./${{ env.GDB_BUILD_PATH }}
 
 
