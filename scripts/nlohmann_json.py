@@ -74,7 +74,8 @@ def show_last_exception():
     print("{}: {}".format(exc_type.__name__, exc_value))
     print(" Detailed stacktrace ".center(80, HORIZONTAL_LINE))
     for (filename, lineno, method, code) in traceback.extract_tb(exc_traceback)[::-1]:
-        print("""{} File "{}", line {:d}, in {}()""".format(DOWN_ARROW, filename, lineno, method))
+        print("""{} File "{}", line {:d}, in {}()""".format(
+            DOWN_ARROW, filename, lineno, method))
         print("   {}    {}".format(RIGHT_ARROW, code))
     print(" Last 10 GDB commands ".center(80, HORIZONTAL_LINE))
     gdb.execute("show commands")
@@ -91,8 +92,6 @@ def show_last_exception():
     sys.exit(ERROR_PARSING_ERROR)
 
 
-
-
 def find_platform_type(regex, helper_type_name):
     # we suppose its a unique match, 4 lines output
     info_types = gdb.execute("info types {}".format(regex), to_string=True)
@@ -102,12 +101,19 @@ def find_platform_type(regex, helper_type_name):
     if len(lines) == 4:
         for l in lines:
             print("### Log info types output : {}".format(l))
+        l = lines[-1]
+        if l.startswith(helper_type_name):
+            # line format "type_name;"
+            t = l.split(";")[0]
          # split last line, after line number and spaces
-        t = re.split("^\d+:\s+", lines[-1])
-        # transform result
-        t = "".join(t[1::]).split(";")[0]
+        else:
+            # line format "number : type_name;"
+            t = re.split("^\d+:\s+", lines[-1])
+            # transform result
+            t = "".join(t[1::]).split(";")[0]
         print("")
-        print("The researched {} type for this executable is".format(helper_type_name).center(80, "-"))
+        print("The researched {} type for this executable is".format(
+            helper_type_name).center(80, "-"))
         print("{}".format(t).center(80, "-"))
         print("(Using regex: {})".format(regex))
         print("".center(80, "-"))
@@ -115,7 +121,8 @@ def find_platform_type(regex, helper_type_name):
         return t
 
     else:
-        raise ValueError("Too many matching types found fro JSON ...\n{}".format("\n\t".join(lines)))
+        raise ValueError(
+            "Too many matching types found fro JSON ...\n{}".format("\n\t".join(lines)))
 
 
 def find_platform_json_type(nlohmann_json_type_prefix):
@@ -133,7 +140,8 @@ def find_lohmann_types():
     Finds essentials types to debug nlohmann JSONs
     """
 
-    nlohmann_json_type_namespace = find_platform_json_type(NLOHMANN_JSON_TYPE_PREFIX)
+    nlohmann_json_type_namespace = find_platform_json_type(
+        NLOHMANN_JSON_TYPE_PREFIX)
 
     # enum type that represents what is eaxtcly the current json object
     nlohmann_json_type = gdb.lookup_type(nlohmann_json_type_namespace)
@@ -146,7 +154,7 @@ def find_lohmann_types():
     for field in nlohmann_json_type.fields():
         if NLOHMANN_JSON_KIND_FIELD_NAME == field.name:
             enum_json_detail_type = field.type
-            break;
+            break
 
     enum_json_details = enum_json_detail_type.fields()
 
@@ -160,7 +168,8 @@ def find_std_map_rb_tree_types():
     except:
         raise ValueError("Could not find the required RB tree types")
 
-## SET GLOBAL VARIABLES
+
+# SET GLOBAL VARIABLES
 try:
     NLOHMANN_JSON_TYPE_NAMESPACE, NLOHMANN_JSON_TYPE_POINTER, ENUM_JSON_DETAIL, NLOHMANN_JSON_MAP_KEY_TYPE = find_lohmann_types()
     STD_RB_TREE_NODE_TYPE = find_std_map_rb_tree_types()
@@ -170,8 +179,8 @@ except:
 
 # convert the full namespace to only its litteral value
 # useful to access the corect variant of JSON m_value
-ENUM_LITERAL_NAMESPACE_TO_LITERAL = dict([ (f.name, f.name.split("::")[-1]) for f in ENUM_JSON_DETAIL])
-
+ENUM_LITERAL_NAMESPACE_TO_LITERAL = dict(
+    [(f.name, f.name.split("::")[-1]) for f in ENUM_JSON_DETAIL])
 
 
 def gdb_value_address_to_int(node):
@@ -221,7 +230,7 @@ class LohmannJSONPrinter(object):
         # traversing tree is a an adapted copy pasta from STL gdb parser
         # (http://www.yolinux.com/TUTORIALS/src/dbinit_stl_views-1.03.txt and similar links)
 
-        node      = o["_M_t"]["_M_impl"]["_M_header"]["_M_left"]
+        node = o["_M_t"]["_M_impl"]["_M_header"]["_M_left"]
         tree_size = o["_M_t"]["_M_impl"]["_M_node_count"]
 
         # for safety
@@ -237,19 +246,24 @@ class LohmannJSONPrinter(object):
             while i < tree_size:
                 # when it is written "+1" in the STL GDB script, it performs an increment of 1 x size of object
                 # key is right after
-                key_address = gdb_value_address_to_int(node) + STD_RB_TREE_NODE_TYPE.sizeof
+                key_address = gdb_value_address_to_int(
+                    node) + STD_RB_TREE_NODE_TYPE.sizeof
 
                 k_str = parse_std_string_from_hexa_address(key_address)
 
                 value_address = key_address + NLOHMANN_JSON_MAP_KEY_TYPE.sizeof
-                value_object = gdb.Value(value_address).cast(NLOHMANN_JSON_TYPE_POINTER)
+                value_object = gdb.Value(value_address).cast(
+                    NLOHMANN_JSON_TYPE_POINTER)
 
-                v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
+                v_str = LohmannJSONPrinter(
+                    value_object, self.indent_level + 1).to_string()
 
                 k_v_str = "{} : {}".format(k_str, v_str)
-                end_of_line = "\n" if tree_size <= 1 or i == (tree_size - 1) else ",\n"
+                end_of_line = "\n" if tree_size <= 1 or i == (
+                    tree_size - 1) else ",\n"
 
-                s = s + (" " * (self.indent_level * INDENT)) + k_v_str + end_of_line
+                s = s + (" " * (self.indent_level * INDENT)) + \
+                    k_v_str + end_of_line
 
                 if gdb_value_address_to_int(node["_M_right"]) != 0:
                     node = node["_M_right"]
@@ -300,10 +314,13 @@ class LohmannJSONPrinter(object):
             while i < size:
                 offset = i * element_size
                 i_address = start_address + offset
-                value_object = gdb.Value(i_address).cast(NLOHMANN_JSON_TYPE_POINTER)
-                v_str = LohmannJSONPrinter(value_object, self.indent_level + 1).to_string()
-                end_of_line = "\n" if size <= 1 or i == (size -1) else ",\n"
-                s = s + (" " * (self.indent_level * INDENT)) + v_str + end_of_line
+                value_object = gdb.Value(i_address).cast(
+                    NLOHMANN_JSON_TYPE_POINTER)
+                v_str = LohmannJSONPrinter(
+                    value_object, self.indent_level + 1).to_string()
+                end_of_line = "\n" if size <= 1 or i == (size - 1) else ",\n"
+                s = s + (" " * (self.indent_level * INDENT)) + \
+                    v_str + end_of_line
                 i += 1
             self.indent_level -= 2
             s = s + (" " * (self.indent_level * INDENT)) + "]"
@@ -349,9 +366,11 @@ class LohmannJSONPrinter(object):
 
 def build_pretty_printer():
     pp = gdb.printing.RegexpCollectionPrettyPrinter("nlohmann_json")
-    pp.add_printer(NLOHMANN_JSON_TYPE_NAMESPACE, "^{}$".format(NLOHMANN_JSON_TYPE_POINTER), LohmannJSONPrinter)
+    pp.add_printer(NLOHMANN_JSON_TYPE_NAMESPACE, "^{}$".format(
+        NLOHMANN_JSON_TYPE_POINTER), LohmannJSONPrinter)
     return pp
 
 
 # executed at autoload
-gdb.printing.register_pretty_printer(gdb.current_objfile(), build_pretty_printer())
+gdb.printing.register_pretty_printer(
+    gdb.current_objfile(), build_pretty_printer())
