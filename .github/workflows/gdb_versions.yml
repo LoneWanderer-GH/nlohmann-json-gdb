@@ -71,9 +71,9 @@ jobs:
       - name: list pythons
         run: ls /usr/include -aRl | grep python
 
-      # - name: Install relevant packets gnat, texinfo, gprbuild (hoping that gnat compiler might change anything to failrues observed until now)
-      #   run: sudo apt-get install gnat texinfo
-      #   if: matrix.os == 'ubuntu-latest'
+      - name: Install relevant packets gnat, texinfo, gprbuild (hoping that gnat compiler might change anything to failrues observed until now)
+        run: sudo apt-get install gnat texinfo
+        if: matrix.os == 'ubuntu-latest'
 
       - uses: actions/cache@v1
         id: cache-gdb-src
@@ -147,7 +147,7 @@ jobs:
         working-directory: ./${{ env.GDB_BUILD_PATH }}
 
       - name: Make all install
-        run: sudo ../${{ steps.get-untar-root-dir.outputs.dir }}/make all install
+        run: ls -al ../${{ steps.get-untar-root-dir.outputs.dir }} && sudo ../${{ steps.get-untar-root-dir.outputs.dir }}/make all install
         working-directory: ./${{ env.GDB_BUILD_PATH }}
 
 
