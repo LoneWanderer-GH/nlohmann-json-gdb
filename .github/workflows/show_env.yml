@@ -1,0 +1,36 @@
+name: Show env
+
+on:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  understand-envs:
+    env:
+      SOME_VAR: FOO
+    runs-on: ubuntu-latest
+    steps:
+      - name: Is variable exported?
+        run: |
+          echo "${{ env.SOME_VAR }}"
+
+      - name: Change var to bAr
+        run: |
+          echo "::set-env name=SOME_VAR=bAr"
+
+      - name: Is variable updated ?
+        run: |
+          echo "${{ env.SOME_VAR }}"
+
+      - name: Change var to pwd
+        run: |
+          echo "::set-env name=SOME_VAR=$(pwd)"
+
+      - name: Set output pwd
+        id: flex
+        run: |
+          echo "::set-output name=ze_pwd::$(pwd)"
+
+      - name: echo ze_pwd
+        run: echo ./${{ steps.flex.outputs.ze_pwd }}
