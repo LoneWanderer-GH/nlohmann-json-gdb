@@ -13,7 +13,7 @@ on:
 jobs:
 
   test-gdb-release:
-    name: ${{ matrix.gdb }}-${{ matrix.os }}
+    name: ${{ matrix.gdb }}-${{ matrix.python }}-${{ matrix.os }}
     env:
       FTP_URL: ftp://sourceware.org/pub/gdb/releases/
       FILE_EXT: .tar.gz
@@ -25,6 +25,7 @@ jobs:
     strategy:
       fail-fast: False # try all !
       matrix:
+        python: [python2, python3]
         os:
           - ubuntu-latest
           # - windows-latest
@@ -87,9 +88,9 @@ jobs:
         id: cache-gdb-build
         with:
           path: ./${{ env.GDB_BUILD_PATH }}
-          key: ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}
+          key: ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.python }}
           restore-keys: |
-            ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}
+            ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.python }}
 
       - name: Create downloads dir
         run: pwd && ls -al && mkdir -p ${{ env.DOWNLOAD_PATH }}
@@ -114,7 +115,7 @@ jobs:
         if: steps.cache-gdb-build.outputs.cache-hit != 'true'
 
       - name: Configure
-        run: ../${{ steps.get-untar-root-dir.outputs.dir }}/configure
+        run: ../${{ steps.get-untar-root-dir.outputs.dir }}/configure --with-python=${{ matrix.python }}
         working-directory: ./${{ env.GDB_BUILD_PATH }}
 
       - name: Make all install
