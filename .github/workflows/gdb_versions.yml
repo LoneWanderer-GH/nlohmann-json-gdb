@@ -179,9 +179,9 @@ jobs:
       #   if: matrix.os == 'windows-latest'
 
 
-      # - name: Build cpp_test_project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
-      #   run: gprbuild -p -vm
-      #   working-directory: ./tests/cpp_test_project
+      - name: Build cpp_test_project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
+        run: gprbuild -p -vm
+        working-directory: ./tests/cpp_test_project
 
 
       # - name: PERFORM GDB [TEST THE TEST SUITE]
@@ -190,10 +190,10 @@ jobs:
       #   if: matrix.os == 'windows-latest'
 
 
-      # - name: PERFORM GDB [TEST THE TEST SUITE]
-      #   run: sudo ${{ env.GDB_EXE }} --se=./exe/main --command=Test_Test_Suite.gdb --batch
-      #   working-directory: ./tests/cpp_test_project
-      #   if: matrix.os == 'ubuntu-latest'
+      - name: PERFORM GDB [TEST THE TEST SUITE]
+        run: sudo ${{ env.GDB_EXE }} --se=./exe/main --command=Test_Test_Suite.gdb --batch
+        working-directory: ./tests/cpp_test_project
+        if: matrix.os == 'ubuntu-latest'
 
 
 
@@ -203,7 +203,7 @@ jobs:
       #   if: matrix.os == 'windows-latest'
 
 
-      # - name: PERFORM GDB [TEST SUITE]
-      #   run: sudo ${{ env.GDB_EXE }} --se=./exe/main --command=Test_Suite.gdb --batch
-      #   working-directory: ./tests/cpp_test_project
-      #   if: matrix.os == 'ubuntu-latest'
+      - name: PERFORM GDB [TEST SUITE]
+        run: sudo ${{ env.GDB_EXE }} --se=./exe/main --command=Test_Suite.gdb --batch
+        working-directory: ./tests/cpp_test_project
+        if: matrix.os == 'ubuntu-latest'
