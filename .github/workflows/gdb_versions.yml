@@ -32,32 +32,34 @@ jobs:
           - ubuntu-latest
           # - windows-latest
         gdb:
-          - gdb-7.0.1a
-          - gdb-7.0a
-          - gdb-7.10.1
-          - gdb-7.10
-          - gdb-7.11.1
-          - gdb-7.11
+          # all 7.x versions until 7.12.1 fail to compile with recent GCC due to several new warnings (treated as errors)
+          # see this thread for instance http://sourceware-org.1504.n7.nabble.com/RFA-0-3-Fix-various-bugs-found-by-static-analysis-td415799.html#a417864
+          # - gdb-7.0.1a
+          # - gdb-7.0a
+          # - gdb-7.1a
+          # - gdb-7.2a
+          # - gdb-7.3.1
+          # - gdb-7.3a
+          # - gdb-7.4.1
+          # - gdb-7.4
+          # - gdb-7.5.1
+          # - gdb-7.5
+          # - gdb-7.6.1
+          # - gdb-7.6.2
+          # - gdb-7.6
+          # - gdb-7.7.1
+          # - gdb-7.7
+          # - gdb-7.8.1
+          # - gdb-7.8.2
+          # - gdb-7.8
+          # - gdb-7.9.1
+          # - gdb-7.9
+          # - gdb-7.10.1
+          # - gdb-7.10
+          # - gdb-7.11.1
+          # - gdb-7.11
+          # - gdb-7.12
           - gdb-7.12.1
-          - gdb-7.12
-          - gdb-7.1a
-          - gdb-7.2a
-          - gdb-7.3.1
-          - gdb-7.3a
-          - gdb-7.4.1
-          - gdb-7.4
-          - gdb-7.5.1
-          - gdb-7.5
-          - gdb-7.6.1
-          - gdb-7.6.2
-          - gdb-7.6
-          - gdb-7.7.1
-          - gdb-7.7
-          - gdb-7.8.1
-          - gdb-7.8.2
-          - gdb-7.8
-          - gdb-7.9.1
-          - gdb-7.9
           - gdb-8.0.1
           - gdb-8.0
           - gdb-8.1.1
