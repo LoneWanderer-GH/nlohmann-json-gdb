@@ -12,6 +12,9 @@ on:
 
   pull_request:
     branches: [ master, release]
+    paths:
+      - 'scripts/**'
+      - 'tests/**'
 
 jobs:
 

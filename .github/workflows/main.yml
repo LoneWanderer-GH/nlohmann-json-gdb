@@ -5,13 +5,16 @@ on:
     branches:
       - master
       - 'release/v*'
-      - feature/**
-      paths:
-        - 'scripts/**'
-        - 'tests/**'
+      - 'feature/**'
+    paths:
+      - 'scripts/**'
+      - 'tests/**'
 
   pull_request:
     branches: [ master, release]
+    paths:
+      - 'scripts/**'
+      - 'tests/**'
 
 jobs:
 
