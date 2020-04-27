@@ -105,13 +105,16 @@ jobs:
         #run: echo "::set-output name=dir::$(tar -tzf ./${{ env.DOWNLOAD_PATH }}/${{matrix.gdb}}${{env.FILE_EXT}} | head -1 | cut -f1 -d"/")"
         run: echo "::set-output name=dir::$(echo gdb-[0-9].*)"
 
+      - name: The working-directory we would like is
+        run: echo ${{ steps.get-untar-root-dir.dir }}
+
       - name: Configure
         run: pwd && ls -al && configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
-        working-directory: ${{ steps.get-untar-root-dir.dir }}
+        working-directory: ./${{ steps.get-untar-root-dir.dir }}
         if: matrix.gdb != 'gdb-9.1'
 
       - name: Make
-        run: pwd && ls -al && udo make
+        run: pwd && ls -al && sudo make
         working-directory: ${{ steps.get-untar-root-dir.dir }}
         if: matrix.gdb != 'gdb-9.1'
 
