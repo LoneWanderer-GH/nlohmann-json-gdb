@@ -110,9 +110,15 @@ def find_platform_type(regex, helper_type_name):
     # correct command should have given  lines, the last one being the correct one
     if len(lines) == 4:
          # split last line, after line number and spaces
-        t = re.split("^\d+:\s+", lines[-1])
-        # transform result
-        t = "".join(t[1::]).split(";")[0]
+        if gdb.VERSION.startswith("7."): # at least 7.12.1, I guess it applies to all 7.x versions ...
+            # line number not print at beginning of command output line
+            # nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, long long, unsigned long long, double, std::allocator, nlohmann::adl_serializer>;
+            t = lines[-1].split(";")[0]
+        else:
+            # 14708:  nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, long long, unsigned long long, double, std::allocator, nlohmann::adl_serializer>;
+            t = re.split("^\d+:\s+", lines[-1])
+            # transform result
+            t = "".join(t[1::]).split(";")[0]
         print("")
         print("The researched {} type for this executable is".format(helper_type_name).center(80, "-"))
         print("{}".format(t).center(80, "-"))
@@ -122,7 +128,7 @@ def find_platform_type(regex, helper_type_name):
         return t
 
     else:
-        raise ValueError("Too many matching types found fro JSON ...\n{}".format("\n\t".join(lines)))
+        raise ValueError("Too many matching types found for JSON ...\n{}".format("\n\t".join(lines)))
 
 
 def find_platform_json_type(nlohmann_json_type_prefix):
