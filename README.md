@@ -7,7 +7,7 @@ Provides GDB script and python GDB pretty printer script that allows to to print
  - [x] compatible with a live inferior process with debug symbols
  - [x] compatible with core dump files with debug symbols
 
-This is also a playground for me to get used to Git, Github, and GDB.
+This is also a playground for me to get used to git, Github, gitflow and GDB python scripting/pretty printing.
 
 ## Release notes:
 
@@ -15,13 +15,11 @@ This is also a playground for me to get used to Git, Github, and GDB.
 
 Features:
  - improved overall GDB python pretty printer code
-    - now multiplatform
- - created some sort of a CI process to check we did not mess up with features. It currently checks that the pretty printer matches the json.dump() output.
-
-Limitations:
- - I found that finding the exact real symbol behind `std::string` is not possible until you have run the inferior GDB process (command `r`).
-     So for now, it finds the symbol with what I had at hand, I'm pretty sure its is C++11 compatible only.
-     see [Known limitations](#Known-limitations)
+    - now multiplatform (verified on some)
+ - created some sort of a CI process to check we did not mess up with features:
+    - checks that the pretty printer output matches the json.dump() output.
+    - checks various GDB releases + python versions on Ubuntu
+    - also checks on windows server (but only the gnat community GDB version obtained with chocolatey)
 
 ---
 
@@ -41,8 +39,8 @@ Limitations:
 <a name="Prerequisites"></a>
 # 1. Prerequisites
 
- - *GDB* debugger installed, ready to use.
-     - Tested on ubutun x64, with python 2.7 and python 3.6:
+ - *GDB* debugger installed, ready to use, and of one of the versions below
+     - Tested on Ubuntu x64, with both python 2.7 and python 3.6:
          - GDB 7.12.1
          - GDB 8.0
          - GDB 8.0.1
@@ -53,10 +51,15 @@ Limitations:
          - GDB 8.3
          - GDB 8.3.1
          - GDB 9.1
-     - Windows 8.3 with python 2.7.16. Given the successful tests on Ubuntu x64 with various GDB and python versions, it is likely to work for Windows too.
- - an executable to debug **with debug symbols available to GDB** which uses the [JSON lib 3.7.3][3]
+     - Windows
+         - Server 2019 (win 10; x86_64) and Windows 10 Pro x86_64  GDB 8.3 with python 2.7.10 (from [GNAT CE 2019][2])
+         - Given the successful tests on Ubuntu x64 with various GDB and python versions, it is likely to work for the GDB + python versions above on Windows too.
+     - Tested on Raspbian arm 32, with python 2.7 and GDB 8.3.1
+         - Given the successful tests on Ubuntu x64 with various GDB and python versions, it is likely to work for the GDB versions above on Windows too.
+ - an executable to debug **with debug symbols available to GDB** which uses the [JSON lib _3.7.3_][3]. No other versions tested yet.
  - or a core dump **with debug symbols available to GDB** (for linux users)
- - _Some [GDB commands knowledge][4] might be useful for your debug session to be successful ;)_
+
+ - _Some [GDB commands knowledge][4] might be useful for your debug session to be successful_
 
 
 ## Your GDB does not support python ?
@@ -75,7 +78,51 @@ Have a look [on this wiki page](https://github.com/LoneWanderer-GH/nlohmann-json
 # 2. Installing
 
 Just copy the GDB and/or python script you need in a folder near your executable to debug, and of course, load it into your GDB.
-See [Content](#Content) and [Usage](#Usage) sections below for more details.
+For linux users:
+
+```
+# get the file
+$ wget https://raw.githubusercontent.com/LoneWanderer-GH/nlohmann-json-gdb/master/scripts/nlohmann_json.gdb
+# start GDB session
+$ gdb
+(gdb) file ... # load your exe
+(gdb) source nlohmann_json.gdb
+# print a JSON variable
+(gdb)pjson foo
+{
+    "flex" : 0.2,
+    "awesome_str": "bleh",
+    "nested": {
+        "bar": "barz"
+    }
+}
+```
+
+or
+
+```
+# get the file
+$ wget https://raw.githubusercontent.com/LoneWanderer-GH/nlohmann-json-gdb/master/scripts/nlohmann_json.gdb
+# start GDB session
+$ gdb
+(gdb) file ... # load your exe
+(gdb) source nlohmann_json.py
+# print a JSON variable
+(gdb)p foo
+$ 1 = {
+    "flex" : 0.2,
+    "awesome_str": "bleh",
+    "nested": {
+        "bar": "barz"
+    }
+}
+```
+
+For windows, its basically the same except you may not be able to download the file in command line, links are provided in [Content](#Content) below.
+Also, your GDB might be embedded in some IDE, but its most likely a GDB console front-end.
+
+See also [Content](#Content) and [Usage](#Usage) sections below for more details of what you may find in this repo.
+
 
 <a name="Content"></a>
 # 3. Content
