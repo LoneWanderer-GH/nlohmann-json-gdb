@@ -99,9 +99,9 @@ jobs:
         id: cache-gdb-build
         with:
           path: ./${{ env.GDB_BUILD_PATH }}
-          key: ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.python }}
+          key: ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}
           restore-keys: |
-            ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.python }}
+            ${{ env.GDB_BUILD_PATH }}-${{matrix.gdb}}${{env.FILE_EXT}}-${{ matrix.os }}-${{ matrix.python }}
 
       - name: Create downloads dir
         run: pwd && ls -al && mkdir -p ${{ env.DOWNLOAD_PATH }}
