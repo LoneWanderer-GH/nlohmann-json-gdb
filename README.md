@@ -1,14 +1,25 @@
 # A simplistic GDB pretty printer for [nlohmann-json c++][3]
 
-![CI](https://github.com/LoneWanderer-GH/nlohmann-json-gdb/workflows/CI/badge.svg)
+![CI-OS-ubuntu-windows](https://github.com/LoneWanderer-GH/nlohmann-json-gdb/workflows/CI-OS-ubuntu-windows/badge.svg)
+![CI-GDB-releases-Ubuntu](https://github.com/LoneWanderer-GH/nlohmann-json-gdb/workflows/CI-GDB-releases-Ubuntu/badge.svg)
 
-Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3]
- - [x] compatible with a live inferior process and debug symbols
+Provides GDB script and python GDB pretty printer script that allows to to print a  [nlohmann / json][3]
+ - [x] compatible with a live inferior process with debug symbols
  - [x] compatible with core dump files with debug symbols
- - Tested on:
-   - Win Intel x64
-   - Raspbian arm x32
-   - Ubuntu x64 (Github CI)
+
+This is also a playground for me to get used to git, Github, gitflow and GDB python scripting/pretty printing.
+
+## Release notes:
+
+### v0.0.1: first pretty printer release
+
+Features:
+ - improved overall GDB python pretty printer code
+    - now multiplatform (verified on some)
+ - created some sort of a CI process to check we did not mess up with features:
+    - checks that the pretty printer output matches the json.dump() output.
+    - checks various GDB releases + python versions on Ubuntu
+    - also checks on windows server (but only the gnat community GDB version obtained with chocolatey)
 
 ---
 
@@ -28,11 +39,27 @@ Provides GDB script and python GDB script to pretty print a  [nlohmann / json][3
 <a name="Prerequisites"></a>
 # 1. Prerequisites
 
- - *GDB 8.3* debugger installed, ready to use.
-     Python support started with GDB 7, so it may work with versions starting GDB 7
- - an executable to debug **with debug symbols available to GDB** which uses the [JSON lib 3.7.3][3]
+ - *GDB* debugger installed, ready to use, and of one of the versions below
+     - Tested on Ubuntu x64, with both python 2.7 and python 3.6:
+         - GDB 7.12.1
+         - GDB 8.0
+         - GDB 8.0.1
+         - GDB 8.1
+         - GDB 8.1.1
+         - GDB 8.2
+         - GDB 8.2.1
+         - GDB 8.3
+         - GDB 8.3.1
+         - GDB 9.1
+     - Windows
+         - Server 2019 (win 10; x86_64) and Windows 10 Pro x86_64  GDB 8.3 with python 2.7.10 (from [GNAT CE 2019][2])
+         - Given the successful tests on Ubuntu x64 with various GDB and python versions, it is likely to work for the GDB + python versions above on Windows too.
+     - Tested on Raspbian arm 32, with python 2.7 and GDB 8.3.1
+         - Given the successful tests on Ubuntu x64 with various GDB and python versions, it is likely to work for the GDB versions above on Windows too.
+ - an executable to debug **with debug symbols available to GDB** which uses the [JSON lib _3.7.3_][3]. No other versions tested yet.
  - or a core dump **with debug symbols available to GDB** (for linux users)
- - _Some [GDB commands knowledge][4] might be useful for your debug session to be successful ;)_
+
+ - _Some [GDB commands knowledge][4] might be useful for your debug session to be successful_
 
 
 ## Your GDB does not support python ?
@@ -51,7 +78,51 @@ Have a look [on this wiki page](https://github.com/LoneWanderer-GH/nlohmann-json
 # 2. Installing
 
 Just copy the GDB and/or python script you need in a folder near your executable to debug, and of course, load it into your GDB.
-See [Content](#Content) and [Usage](#Usage) sections below for more details.
+For linux users, you can do a wget on the file (or use the release package, decompress, and use the file you want)
+
+```
+# get the file
+$ wget https://raw.githubusercontent.com/LoneWanderer-GH/nlohmann-json-gdb/master/scripts/nlohmann_json.gdb
+# start GDB session
+$ gdb
+(gdb) file ... # load your exe
+(gdb) source nlohmann_json.gdb
+# print a JSON variable
+(gdb)pjson foo
+{
+    "flex" : 0.2,
+    "awesome_str": "bleh",
+    "nested": {
+        "bar": "barz"
+    }
+}
+```
+
+or
+
+```
+# get the file
+$ wget https://raw.githubusercontent.com/LoneWanderer-GH/nlohmann-json-gdb/master/scripts/nlohmann_json.gpy
+# start GDB session
+$ gdb
+(gdb) file ... # load your exe
+(gdb) source nlohmann_json.py
+# print a JSON variable
+(gdb)p foo
+$ 1 = {
+    "flex" : 0.2,
+    "awesome_str": "bleh",
+    "nested": {
+        "bar": "barz"
+    }
+}
+```
+
+For windows users, its basically the same except you may not be able to download the file in command line, links are provided in [Content](#Content) below.
+Also, your GDB might be embedded in some IDE, but its most likely a GDB console front-end.
+
+See also [Content](#Content) and [Usage](#Usage) sections below for more details of what you may find in this repo.
+
 
 <a name="Content"></a>
 # 3. Content
@@ -137,15 +208,22 @@ see also [this GDB doc](https://doc.ecoscentric.com/gnutools/doc/gdb/Files.html#
 _Coding technique for the pretty printer is quite naive, but it works.
 Any seasoned advice and support appreciated. Aspects I would like to improve:_
  - performance
- - walking in memory using as much GDB commands instead of hardcoding some offsets. This requires both knowledge of GDB and the JSON library symbols usage
+ - code style
+ - Release packaging
+ - Lib version checks
 
 ## Possible TODO list
 
- - [x] ~~the pythonGDBpretty printer core dump management is not (yet ?) done (i.e. core dump means no inferior process to call dump() in any way, and possibly less/no (debug) symbols to rely on)~~ Core dump with debug symbols tested and should be working.
+ - [ ] dont use this TODO list, but Github issues and Github project management
  - [ ] printer can be customised further to print the 0x addresses, I chose not to since the whole point for me was NOT to explore them in GDB. You would have to add few python `print` here and there
  - [ ] add the hexa value for floating point numbers, or for all numerical values
- - [ ] Improve method to get `std::string` `type` and `sizeof`. The current method assumes some known symbols names, that most probably depends on the compilation tools (C++11).
-     Sadly, GDB command `whatis` and `ptype` cannot resolve directly and easily `std::string`
+ - [ ] reduce amount of copy/pasta between [offsets_finder.py](tests/offsets_finder/offsets_finder.py) and [nlohmann_json.py](scripts/nlohmann_json.py)
+
+ - [x] ~~the pythonGDBpretty printer core dump management is not (yet ?) done (i.e. core dump means no inferior process to call dump() in any way, and possibly less/no (debug) symbols to rely on)~~
+     Core dump with debug symbols tested and should be working.
+ - [x] ~~Improve method to get `std::string` `type` and `sizeof`. The current method assumes some known symbols names, that most probably depends on the compilation tools (C++11).
+     Sadly, GDB command `whatis` and `ptype` cannot resolve directly and easily `std::string`~~
+     Solved with the gdb type template argument type extraction feature
 
 
 <a name="Known-limitations"></a>
@@ -254,151 +332,11 @@ This part will tell if the method to find data offsets in the proposed python sc
  1. build the project [simple_offsets_finder.gpr](tests/offsets_finder/simple_offsets_finder.gpr) with the command
         `gprbuild -p -P debug_printer.gpr`
 
- 2. Start a GDB session, here is an console output example, using this console command to launch GDB:
+ 2. Start a GDB session, using this console command to launch GDB. It should tell you if the GDB code deduced offset values are consistent with the bruteforce approach.
 
      ```
      gdb --se=exe/main.exe -command=find_offsets.gdb --batch
      ```
-    <details>
-    ```
-    #
-    # Force gdb to use pretty print of structures managed by default (instead of a barely flat line)
-    #
-    # set print pretty
-    #
-    #
-    # load the offset finder python gdb script
-    #
-    source offsets_finder.py
-    #
-    PLATFORM_BITS 64
-
-    Search range will be:
-    MIN: 2 - MAX: 512 - STEP: 2
-
-
-    -------------The researched std::string type for this executable is-------------
-    std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >-
-    Using regex: ^std::__cxx.*::basic_string<char,.*>$
-    --------------------------------------------------------------------------------
-
-
-    --------The researched nlohmann::basic_json type for this executable is---------
-    nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, long long, unsigned long long, double, std::allocator, nlohmann::adl_serializer>
-    Using regex: ^nlohmann::basic_json<.*>$
-    --------------------------------------------------------------------------------
-
-    #
-    # Auto setting break point before exe prints mixed_nested
-    #
-    Breakpoint 1 at 0x401753: file F:\DEV\Projets\nlohmann-json-gdb\offsets_finder\src\main.cpp, line 44.
-    #
-    # Running the exe
-       THIS
-        IS
-       THE
-       END
-      (ABC)
-       MY
-
-    Breakpoint 1, main () at F:\DEV\Projets\nlohmann-json-gdb\offsets_finder\src\main.cpp:44
-    44      F:\DEV\Projets\nlohmann-json-gdb\offsets_finder\src\main.cpp: No such file or directory.
-    $1 = (nlohmann::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, long long, unsigned long long, double, std::allocator, nlohmann::adl_serializer>::object_t *) 0x1104b90
-    #
-    # ### Prints using python pretty printer offsetts finder ###
-    #
-    # Print simple_json (python pretty printer)
-    $2 = Expected pair: <key:first, value:second>
-    Testing Node.Key offset 2
-    Testing Node.Key offset 4
-    Testing Node.Key offset 6
-    Testing Node.Key offset 8
-    Testing Node.Key offset 10
-    Testing Node.Key offset 12
-    Testing Node.Key offset 14
-    Testing Node.Key offset 16
-    Testing Node.Key offset 18
-    Testing Node.Key offset 20
-    Testing Node.Key offset 22
-    Testing Node.Key offset 24
-    Testing Node.Key offset 26
-    Testing Node.Key offset 28
-    Testing Node.Key offset 30
-    Testing Node.Key offset 32
-    Found the key '"first"'
-    Testing Node.Value offset 2
-    Testing Node.Value offset 4
-    Testing Node.Value offset 6
-    Testing Node.Value offset 8
-    Testing Node.Value offset 10
-    Testing Node.Value offset 12
-    Testing Node.Value offset 14
-    Testing Node.Value offset 16
-    Testing Node.Value offset 18
-    Testing Node.Value offset 20
-    Testing Node.Value offset 22
-    Testing Node.Value offset 24
-    Testing Node.Value offset 26
-    Testing Node.Value offset 28
-    Testing Node.Value offset 30
-    Testing Node.Value offset 32
-    Found the value '"second"'
-
-
-    Offsets for STD::MAP <key,val> exploration from a given node are:
-
-    MAGIC_OFFSET_STD_MAP_KEY        = 32 = expected value from symbols 32
-    MAGIC_OFFSET_STD_MAP_VAL        = 32 = expected value from symbols 32
-
-     ===> Offsets for STD::MAP : [ FOUND ] <===
-
-
-
-    #
-    # Print simple_array (python pretty printer)
-    #
-    $3 = Trying to search array element 996699FOO at index (2)
-    Testing vector value offset 2
-    value: Not a valid JSON type, continuing
-    Testing vector value offset 4
-    value: Not a valid JSON type, continuing
-    Testing vector value offset 6
-    value: null
-    Testing vector value offset 8
-    value: 25
-    Testing vector value offset 10
-    value: Not a valid JSON type, continuing
-    Testing vector value offset 12
-    value: Not a valid JSON type, continuing
-    Testing vector value offset 14
-    value: null
-    Testing vector value offset 16
-    value: "996699FOO"
-
-
-    Offsets for STD::VECTOR exploration are:
-
-    MAGIC_OFFSET_STD_VECTOR = 16
-    OFFSET expected value   = 16 (o["_M_impl"]["_M_start"], vector element size)
-
-     ===> Offsets for STD::VECTOR : [ FOUND ] <===
-
-
-
-
-
-    ############ FORCING A NORMAL EXIT (code 0) ############
-
-    Errors in python should have triggered a different exit code earlier
-
-    A debugging session is active.
-
-            Inferior 1 [process 1320] will be killed.
-
-    Quit anyway? (y or n) [answered Y; input not from terminal]
-
-    ```
-    </details>
 
 ## Another approach I know of
  _from a guru of my workplace_

@@ -1,103 +1,122 @@
-# This is a basic workflow to help you get started with Actions
+name: CI-OS-ubuntu-windows
 
-name: CI
-
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
+      - 'release/v*'
+      - 'feature/**'
+    paths:
+      - 'scripts/**'
+      - 'tests/**'
+
   pull_request:
-    branches: [ master ]
+    branches: [ master, release]
+    paths:
+      - 'scripts/**'
+      - 'tests/**'
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build-and-execute-offsets-finder:
+
+  test-pretty-printers:
     # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    # env:
+    #   TEST_DIR_PATH: ./tests/offsets_finder
+    #   PYTHON_TEST: ./tests/Test_GDB_python.gdb
+    #   GDB_TEST_SCRIPT: find_offsets.gdb
+    #   EXE_FILE: ./exe/main.exe
+    #   GNAT_BIN_PATH: C:\GNAT\bin
+
     steps:
-    - name: Install relevant packets gnat, texinfo, gdb, gprbuild
-      run: sudo apt-get install gnat texinfo gdb gprbuild
+      # - name: Chocolatey configuration
+      #   run: choco config list
 
-    - name: Locate GDB version
-      run: which gdb
+      # - name: Store Chocolatey cache dir
+      #   run: echo ::set-env name=CHOCOLATEY_CACHE_PATH::$(choco config get cacheLocation)
 
-    - name: Check GDB version
-      run: gdb --version
+      # - name: Get chocolatey cache dir
+      #   id: choco-cache-dir-path
+      #   run: echo "::set-output name=dir::$(choco config get cacheLocation)"
 
-    - name: Output GDB configuration
-      run: gdb --configuration
+      # - name: Cache the chocolatey download dir
+      #   uses: actions/cache@v1
+      #   id: choco-cache
+      #   with:
+      #     path: ${{ steps.choco-cache-dir-path.outputs.dir }}
+      #     key: ${{ matrix.os }}-chocolatey-download-cache
+      #     restore-keys: |
+      #       ${{ matrix.os }}-chocolatey-download-cache
 
-    - name: Prepare some GDB command tests
-      run: echo -e "maintenance set internal-error quit yes\nhelp python\npython\nimport sys\nprint(\"Foo\")\nsys.exit(0)\nend\nq 25" > python_test.gdb
+      - name: Install relevant packets gnat-gpl which will hopefully provide gprbuild, gnat and gdb
+        run: choco install gnat-gpl # -v -d
+        if: matrix.os == 'windows-latest'
 
-    - name: Check GDB supports python (exit code 25 means something went wrong in the python commands) otherwise exit code should be the 0 force un sys.exit(0)
-      run: gdb --command=python_test.gdb --batch
+      - name: Add GNAT to PATH, chocolatey cannot do it by itself ?
+        run: echo "::add-path::C:\GNAT\bin"
+        if: matrix.os == 'windows-latest'
 
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
-
-    - name: Build the test project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
-      run: pwd && ls -al && gprbuild -p -vm
-      working-directory: ./tests/offsets_finder
-
-    - name: append GDB quit on error
-      run: echo "maintenance set internal-error quit yes $(cat find_offsets.gdb)" > find_offsets.gdb && cat find_offsets.gdb
-      working-directory: ./tests/offsets_finder
-
-    # Runs a set of commands using the runners shell
-    - name: Start a gdb session
-      run: gdb --se=./exe/main --command=find_offsets.gdb --batch
-      working-directory: ./tests/offsets_finder
-
-  build-and-execute-test-suite:
-    runs-on: ubuntu-latest
-    steps:
       - name: Install relevant packets gnat, texinfo, gdb, gprbuild
         run: sudo apt-get install gnat texinfo gdb gprbuild
+        if: matrix.os == 'ubuntu-latest'
 
-      - name: Locate GDB version
-        run: which gdb
 
-      - name: Check GDB version
-        run: gdb --version
-
-      - name: Output GDB configuration
-        run: gdb --configuration
-
-      - name: Prepare some GDB command tests
-        run: echo -e "maintenance set internal-error quit yes\nhelp python\npython\nimport sys\nprint(\"Foo\")\nsys.exit(0)\nend\nq 25" > python_test.gdb
-
-      - name: Check GDB supports python (exit code 25 means something went wrong in the python commands) otherwise exit code should be the 0 force un sys.exit(0)
-        run: gdb --command=python_test.gdb --batch
+      - name: GDB location, version and configuration
+        run: gdb --version && gdb --configuration
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: build the test project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
-        run: pwd && ls -al && gprbuild -p -vm
-        working-directory: ./tests/cpp_test_project
+      - name: Check GDB supports python
+        run: gdb --command=./tests/Test_GDB_python.gdb --batch
 
-      - name: Prepend GDB quit on error (and output file for check)
-        run: echo "maintenance set internal-error quit yes $(cat .gdbinit)" > .gdbinit && cat .gdbinit
-        working-directory: ./tests/cpp_test_project
-
-      - name: Prepare test test suite GDB script
-        run: cat .gdbinit > test_test_suite.gdb && echo -e "source checker.py\npython test_the_test_suite()" >> test_test_suite.gdb && cat test_test_suite.gdb
-        working-directory: ./tests/cpp_test_project
-
-      - name: Prepare test suite GDB script
-        run: cat .gdbinit >  test_suite.gdb && echo -e "source checker.py\npython test_suite()" >> test_suite.gdb && cat test_suite.gdb
-        working-directory: ./tests/cpp_test_project
+      - name: Build offsets_finder (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
+        run: gprbuild -p -vm
+        working-directory: ./tests/offsets_finder
 
       # Runs a set of commands using the runners shell
-      - name: PERFORM GDB [TEST THE TEST SUITE]
-        run: gdb --se=./exe/main --command=test_test_suite.gdb --batch
+      - name: Run offsets_finder GDB session
+        run: gdb --se=./exe/main --command=find_offsets.gdb --batch
+        working-directory: ./tests/offsets_finder
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Run offsets_finder GDB session
+        run: gdb --se=./exe/main.exe --command=find_offsets.gdb --batch
+        working-directory: ./tests/offsets_finder
+        if: matrix.os == 'windows-latest'
+
+
+      - name: Build cpp_test_project (gprbuild finds automagically the .gpr file, -p to force missing dirs creation)
+        run: gprbuild -p -vm
         working-directory: ./tests/cpp_test_project
 
-      - name: PERFORM GDB [TEST SUITE]
-        run: gdb --se=./exe/main --command=test_suite.gdb --batch
+
+      - name: PERFORM GDB [TEST THE TEST SUITE]
+        run: gdb --se=./exe/main.exe --command=Test_Test_Suite.gdb --batch
         working-directory: ./tests/cpp_test_project
+        if: matrix.os == 'windows-latest'
+
+
+      - name: PERFORM GDB [TEST THE TEST SUITE]
+        run: gdb --se=./exe/main --command=Test_Test_Suite.gdb --batch
+        working-directory: ./tests/cpp_test_project
+        if: matrix.os == 'ubuntu-latest'
+
+
+
+      - name: PERFORM GDB [TEST SUITE]
+        run: gdb --se=./exe/main.exe --command=Test_Suite.gdb --batch
+        working-directory: ./tests/cpp_test_project
+        if: matrix.os == 'windows-latest'
+
+
+      - name: PERFORM GDB [TEST SUITE]
+        run: gdb --se=./exe/main --command=Test_Suite.gdb --batch
+        working-directory: ./tests/cpp_test_project
+        if: matrix.os == 'ubuntu-latest'
