@@ -78,7 +78,7 @@ Have a look [on this wiki page](https://github.com/LoneWanderer-GH/nlohmann-json
 # 2. Installing
 
 Just copy the GDB and/or python script you need in a folder near your executable to debug, and of course, load it into your GDB.
-For linux users:
+For linux users, you can do a wget on the file (or use the release package, decompress, and use the file you want)
 
 ```
 # get the file
@@ -102,7 +102,7 @@ or
 
 ```
 # get the file
-$ wget https://raw.githubusercontent.com/LoneWanderer-GH/nlohmann-json-gdb/master/scripts/nlohmann_json.gdb
+$ wget https://raw.githubusercontent.com/LoneWanderer-GH/nlohmann-json-gdb/master/scripts/nlohmann_json.gpy
 # start GDB session
 $ gdb
 (gdb) file ... # load your exe
@@ -118,7 +118,7 @@ $ 1 = {
 }
 ```
 
-For windows, its basically the same except you may not be able to download the file in command line, links are provided in [Content](#Content) below.
+For windows users, its basically the same except you may not be able to download the file in command line, links are provided in [Content](#Content) below.
 Also, your GDB might be embedded in some IDE, but its most likely a GDB console front-end.
 
 See also [Content](#Content) and [Usage](#Usage) sections below for more details of what you may find in this repo.
