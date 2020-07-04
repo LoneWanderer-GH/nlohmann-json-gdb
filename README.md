@@ -2,6 +2,8 @@
 
 ![CI-OS-ubuntu-windows](https://github.com/LoneWanderer-GH/nlohmann-json-gdb/workflows/CI-OS-ubuntu-windows/badge.svg)
 ![CI-GDB-releases-Ubuntu](https://github.com/LoneWanderer-GH/nlohmann-json-gdb/workflows/CI-GDB-releases-Ubuntu/badge.svg)
+[![Donate to this project using Patreon](https://img.shields.io/badge/patreon-donate-yellow.svg)](https://www.patreon.com/bePatron?u=38268348)
+
 
 Provides GDB script and python GDB pretty printer script that allows to to print a  [nlohmann / json][3]
  - [x] compatible with a live inferior process with debug symbols
